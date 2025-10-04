@@ -1,103 +1,146 @@
-import Image from "next/image";
+"use client";
+import { useEffect, useState } from "react";
+
+type Arquivo = {
+  id: number;
+  nome_arquivo: string;
+  criado_em: string;
+};
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [status, setStatus] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [arquivos, setArquivos] = useState<Arquivo[]>([]);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  // ---- Funções de criptografia local (apenas demo) ----
+  const encryptData = async (data: ArrayBuffer, key: CryptoKey) => {
+    return await window.crypto.subtle.encrypt(
+      { name: "AES-GCM", iv: new Uint8Array(12) },
+      key,
+      data
+    );
+  };
+
+  const decryptData = async (encryptedData: ArrayBuffer, key: CryptoKey) => {
+    return await window.crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: new Uint8Array(12) },
+      key,
+      encryptedData
+    );
+  };
+
+  const generateKey = async () => {
+    return await window.crypto.subtle.generateKey(
+      { name: "AES-GCM", length: 256 },
+      true,
+      ["encrypt", "decrypt"]
+    );
+  };
+
+  // ---- Upload ----
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (f) {
+      setFile(f);
+      setPreview(URL.createObjectURL(f));
+    }
+  };
+
+  const downloadKey = (key: CryptoKey, fileName: string) => {
+    key &&
+      window.crypto.subtle.exportKey("raw", key).then((rawKey) => {
+        const dekBase64 = btoa(String.fromCharCode(...new Uint8Array(rawKey)));
+        const blob = new Blob([dekBase64], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${fileName}-key.txt`;
+        a.click();
+
+        URL.revokeObjectURL(url);
+      });
+  }
+
+  const handleUpload = async () => {
+    if (!file) return;
+
+    const arrayBuffer = await file.arrayBuffer();
+    const key = await generateKey();
+
+    // nonce aleatório
+    const nonceFile = crypto.getRandomValues(new Uint8Array(12));
+
+    const encrypted = await encryptData(arrayBuffer, key);
+
+    const formData = new FormData();
+    formData.append("file", new Blob([encrypted]), file.name);
+    formData.append("nome_arquivo", file.name);
+    formData.append("nonce_file", btoa(String.fromCharCode(...nonceFile)));
+
+    const res = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (res.ok) {
+      setStatus("Arquivo criptografado e enviado!");
+      downloadKey(key, file.name);
+      loadArquivos();
+    } else {
+      setStatus("Erro no upload");
+    }
+  };
+
+  // ---- Listagem de arquivos do backend ----
+  const loadArquivos = async () => {
+    try {
+      const res = await fetch("/api/archives");
+      const data = await res.json();
+      setArquivos(data);
+    } catch (err) {
+      console.error("Erro ao carregar arquivos:", err);
+    }
+  };
+
+  useEffect(() => {
+    loadArquivos();
+  }, []);
+
+  // ---- Render ----
+  return (
+    <div style={{ padding: 20 }}>
+      <h1>Upload de imagem criptografada</h1>
+      <input type="file" accept="image/*" onChange={handleFileChange} />
+
+      {preview && (
+        <div style={{ marginTop: 20 }}>
+          <img src={preview} alt="preview" style={{ maxWidth: "300px" }} />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      )}
+      <ul></ul>
+      <button onClick={handleUpload} style={{ marginTop: 20 }}>
+        🔐 Criptografar e enviar
+      </button>
+
+      <h2 style={{ marginTop: 40 }}>📂 Arquivos no servidor</h2>
+      <ul>
+        {arquivos.map((arq) => (
+          <li key={arq.id}>
+            {arq.nome_arquivo} (
+            {new Date(arq.criado_em).toLocaleString("pt-BR")})
+            <button
+              style={{ marginLeft: "10px" }}
+              onClick={() =>
+                (window.location.href = `/api/download/${arq.id}`)
+              }
+            >
+              Download
+            </button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

@@ -1,0 +1,11 @@
+C:\Users\djona\Project Full Crypt\fullcrypt\backend\target\debug\deps\solana_borsh-8d72b3850fd804a6.d: C:\Users\djona\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\solana-borsh-2.2.1\src\lib.rs C:\Users\djona\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\solana-borsh-2.2.1\src\deprecated.rs C:\Users\djona\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\solana-borsh-2.2.1\src\macros.rs C:\Users\djona\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\solana-borsh-2.2.1\src\v0_10.rs C:\Users\djona\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\solana-borsh-2.2.1\src\v1.rs
+
+C:\Users\djona\Project Full Crypt\fullcrypt\backend\target\debug\deps\libsolana_borsh-8d72b3850fd804a6.rlib: C:\Users\djona\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\solana-borsh-2.2.1\src\lib.rs C:\Users\djona\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\solana-borsh-2.2.1\src\deprecated.rs C:\Users\djona\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\solana-borsh-2.2.1\src\macros.rs C:\Users\djona\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\solana-borsh-2.2.1\src\v0_10.rs C:\Users\djona\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\solana-borsh-2.2.1\src\v1.rs
+
+C:\Users\djona\Project Full Crypt\fullcrypt\backend\target\debug\deps\libsolana_borsh-8d72b3850fd804a6.rmeta: C:\Users\djona\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\solana-borsh-2.2.1\src\lib.rs C:\Users\djona\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\solana-borsh-2.2.1\src\deprecated.rs C:\Users\djona\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\solana-borsh-2.2.1\src\macros.rs C:\Users\djona\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\solana-borsh-2.2.1\src\v0_10.rs C:\Users\djona\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\solana-borsh-2.2.1\src\v1.rs
+
+C:\Users\djona\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\solana-borsh-2.2.1\src\lib.rs:
+C:\Users\djona\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\solana-borsh-2.2.1\src\deprecated.rs:
+C:\Users\djona\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\solana-borsh-2.2.1\src\macros.rs:
+C:\Users\djona\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\solana-borsh-2.2.1\src\v0_10.rs:
+C:\Users\djona\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\solana-borsh-2.2.1\src\v1.rs:
