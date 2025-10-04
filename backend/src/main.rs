@@ -10,6 +10,7 @@ async fn main() {
     let app = Router::new()
         .route("/api/upload", post(routes::upload::upload))
         .route("/api/archives", get(routes::archives::archives))
+        .route("/api/download/:file_id", get(routes::download_file::download::download))
         .with_state(pool.clone()); // injeta pool no estado do Axum
 
     println!("🚀 Backend rodando em http://127.0.0.1:3001");
