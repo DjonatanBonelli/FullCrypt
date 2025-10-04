@@ -1,7 +1,0 @@
-C:\Users\djona\Programação\full_crypt\backend\target\debug\deps\ark_serialize_derive-0059f06563d65141.d: C:\Users\djona\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ark-serialize-derive-0.4.2\src\lib.rs C:\Users\djona\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ark-serialize-derive-0.4.2\src\serialize.rs C:\Users\djona\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ark-serialize-derive-0.4.2\src\deserialize.rs
-
-C:\Users\djona\Programação\full_crypt\backend\target\debug\deps\ark_serialize_derive-0059f06563d65141.dll: C:\Users\djona\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ark-serialize-derive-0.4.2\src\lib.rs C:\Users\djona\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ark-serialize-derive-0.4.2\src\serialize.rs C:\Users\djona\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ark-serialize-derive-0.4.2\src\deserialize.rs
-
-C:\Users\djona\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ark-serialize-derive-0.4.2\src\lib.rs:
-C:\Users\djona\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ark-serialize-derive-0.4.2\src\serialize.rs:
-C:\Users\djona\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\ark-serialize-derive-0.4.2\src\deserialize.rs:
