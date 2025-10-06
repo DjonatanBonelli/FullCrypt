@@ -3,6 +3,8 @@ use deadpool_postgres::Pool;
 use serde::Serialize;
 use std::sync::Arc;
 
+use crate::db::queries;
+
 #[derive(Serialize)]
 pub struct Archives {
     id: i32,
@@ -19,7 +21,7 @@ pub async fn archives(
     })?;
 
     let stmt = client
-        .prepare("SELECT id, nome_arquivo, criado_em FROM arquivos ORDER BY criado_em DESC")
+        .prepare(queries::SELECT_ARQUIVOS)
         .await
         .map_err(|e| {
             eprintln!("Erro no prepare: {:?}", e);

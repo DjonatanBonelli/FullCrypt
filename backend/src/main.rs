@@ -2,14 +2,15 @@ use axum::{routing::{get, post}, Router};
 use std::sync::Arc;
 mod routes;
 mod pools;
+mod db;
 
 #[tokio::main]
 async fn main() {
     let pool = Arc::new(pools::postgres::create_pool());
 
     let app = Router::new()
-        .route("/api/upload", post(routes::upload::upload))
-        .route("/api/archives", get(routes::archives::archives))
+        .route("/api/upload", post(routes::cloud::upload::upload))
+        .route("/api/archives", get(routes::cloud::archives::archives))
         .route("/api/download/:file_id", get(routes::download_file::download::download))
         .with_state(pool.clone()); // injeta pool no estado do Axum
 

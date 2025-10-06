@@ -15,15 +15,10 @@ tokio-postgres = { version = "0.7", features = ["with-chrono-0_4"] }
 deadpool-postgres = "0.14"
 dotenvy = "0.15.7"
 
-# Solana + Anchor
-anchor-lang = "0.30.1"
-anchor-spl = "0.30.1"
-solana-program = "1.18.11"
-stable-swap-client = "1.6.6"
-
 rand = "0.8"
 
 # AES-GCM (usa AES de 128/192/256 bits com autenticação)
 aes-gcm = "0.10" # já puxa aes, aes-soft e aesni por baixo
 base64 = "0.22.1"
 routes = "0.1.0"
+jsonwebtoken = { version = "10", features = ["rust_crypto"] }

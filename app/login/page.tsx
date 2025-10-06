@@ -10,23 +10,28 @@ export default function LoginPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    const endpoint = isRegister ? "/api/register" : "/api/login"; 
-    // aqui /api/* pode ser um proxy pro backend Rust
+    const endpoint = isRegister ? "/api/register" : "/api/login";
 
-    const res = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-      credentials: "include", // importante se usar cookies
-    });
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (res.ok) {
-      setMessage(isRegister ? "Conta criada!" : "Login OK!");
-      // redirecionar para dashboard
-      window.location.href = "/dashboard";
-    } else {
-      const data = await res.json().catch(() => ({}));
-      setMessage(data.error || "Erro no servidor");
+      const data = await res.json();
+
+      if (res.ok && data.token) {
+        // salva token no localStorage
+        localStorage.setItem("jwt_token", data.token);
+        setMessage(isRegister ? "Conta criada!" : "Login OK!");
+        window.location.href = "/dashboard"; // redireciona para dashboard
+      } else {
+        setMessage(data.error || "Erro no servidor");
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage("Erro de conexão");
     }
   }
 

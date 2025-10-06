@@ -6,6 +6,8 @@ use axum::{
 use std::sync::Arc;
 use deadpool_postgres::Pool;
 
+use crate::db::queries;
+
 pub async fn upload(
     State(pool): State<Arc<Pool>>,
     mut multipart: Multipart,
@@ -62,8 +64,7 @@ pub async fn upload(
     }
 
     let stmt = match client
-        .prepare("INSERT INTO arquivos (usuario_id, nome_arquivo, conteudo, nonce)
-                  VALUES ($1, $2, $3, $4) RETURNING id")
+        .prepare(queries::INSERT_ARQUIVO)
         .await
     {
         Ok(s) => s,
