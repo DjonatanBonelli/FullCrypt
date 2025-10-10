@@ -3,6 +3,7 @@ import { useState } from "react";
 
 export default function LoginPage() {
   const [isRegister, setIsRegister] = useState(false);
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
@@ -12,20 +13,23 @@ export default function LoginPage() {
 
     const endpoint = isRegister ? "/api/register" : "/api/login";
 
+    const payload = isRegister
+      ? { nome: name, email, senha: password }
+      : { email, senha: password };
+
     try {
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
 
       if (res.ok && data.token) {
-        // salva token no localStorage
         localStorage.setItem("jwt_token", data.token);
         setMessage(isRegister ? "Conta criada!" : "Login OK!");
-        window.location.href = "/dashboard"; // redireciona para dashboard
+        window.location.href = "/";
       } else {
         setMessage(data.error || "Erro no servidor");
       }
@@ -39,6 +43,16 @@ export default function LoginPage() {
     <div style={{ maxWidth: 400, margin: "auto", padding: "2rem" }}>
       <h2>{isRegister ? "Registrar" : "Login"}</h2>
       <form onSubmit={handleSubmit}>
+        {isRegister && (
+          <input
+            type="text"
+            placeholder="Nome"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            required
+            style={{ display: "block", marginBottom: "1rem", width: "100%" }}
+          />
+        )}
         <input
           type="email"
           placeholder="Email"
@@ -67,7 +81,13 @@ export default function LoginPage() {
         <button
           type="button"
           onClick={() => setIsRegister(!isRegister)}
-          style={{ textDecoration: "underline", background: "none", border: "none", color: "blue", cursor: "pointer" }}
+          style={{
+            textDecoration: "underline",
+            background: "none",
+            border: "none",
+            color: "blue",
+            cursor: "pointer",
+          }}
         >
           {isRegister ? "Fazer login" : "Registrar"}
         </button>

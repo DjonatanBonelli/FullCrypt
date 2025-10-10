@@ -1,16 +1,18 @@
 use axum::{
-    http::StatusCode,
-    response::IntoResponse,
     extract::{State, Multipart},
+    http::{HeaderMap, StatusCode},
+    response::IntoResponse,
 };
 use std::sync::Arc;
 use deadpool_postgres::Pool;
+
 
 use crate::db::queries;
 
 pub async fn upload(
     State(pool): State<Arc<Pool>>,
     mut multipart: Multipart,
+    headers: HeaderMap,
 ) -> impl IntoResponse {
     let client = match pool.get().await {
         Ok(c) => c,

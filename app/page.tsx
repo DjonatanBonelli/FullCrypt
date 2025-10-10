@@ -13,6 +13,15 @@ export default function Home() {
   const [preview, setPreview] = useState<string | null>(null);
   const [arquivos, setArquivos] = useState<Arquivo[]>([]);
   const [userKey, setUserKey] = useState(""); // chave do usuário em Base64
+  const [token, setToken] = useState<string | null>(null); // token JWT do localStorage
+
+  useEffect(() => {
+    const t = localStorage.getItem("jwt_token");
+    if (!t) {
+      console.error("Token não encontrado!");
+    }
+    setToken(t);
+  }, []);
 
   // ---- Funções de criptografia local ----
   const encryptData = async (data: ArrayBuffer, key: CryptoKey, iv: Uint8Array) => {
@@ -73,7 +82,13 @@ export default function Home() {
     formData.append("nome_arquivo", file.name);
     formData.append("nonce_file", btoa(String.fromCharCode(...nonceFile)));
 
-    const res = await fetch("/api/upload", { method: "POST", body: formData });
+    const res = await fetch("/api/upload", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
 
     if (res.ok) {
       setStatus("Arquivo criptografado e enviado!");
@@ -107,7 +122,11 @@ export default function Home() {
       const key = await importKey(userKey);
 
       // buscar arquivo do backend
-      const res = await fetch(`/api/download/${arq.id}`);
+      const res = await fetch(`/api/download/${arq.id}`, {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+       },
+      });
       if (!res.ok) throw new Error("Erro ao baixar arquivo");
 
       const encryptedData = await res.arrayBuffer();
@@ -133,7 +152,11 @@ export default function Home() {
   // ---- Listagem de arquivos ----
   const loadArquivos = async () => {
     try {
-      const res = await fetch("/api/archives");
+      const res = await fetch("/api/archives", {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
+    });
       const data = await res.json();
       setArquivos(data);
     } catch (err) {
