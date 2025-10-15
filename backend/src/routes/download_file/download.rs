@@ -1,9 +1,8 @@
 use axum::{
     extract::{Path, State},
-    http::{header, StatusCode},
-    response::Response,
-    body::{Full, BoxBody},
+    http::{Response, StatusCode, header},
 };
+use axum::body::Body;
 use std::sync::Arc;
 use deadpool_postgres::Pool;
 use tokio_postgres::types::ToSql;
@@ -11,7 +10,7 @@ use tokio_postgres::types::ToSql;
 pub async fn download(
     Path(file_id): Path<i32>,
     State(pool): State<Arc<Pool>>,
-) -> Response<BoxBody> {
+) -> Response<Body> {
     // Pegar conexão do pool
     let client = match pool.get().await {
         Ok(c) => c,
@@ -19,7 +18,7 @@ pub async fn download(
             eprintln!("❌ Erro ao pegar conexão do pool: {:?}", e);
             return Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)
-                .body(axum::body::boxed(Full::from("Erro no banco")))
+                .body(Body::from("Erro no banco"))
                 .unwrap();
         }
     };
@@ -37,7 +36,7 @@ pub async fn download(
             eprintln!("❌ Erro ao executar query: {:?}", e);
             return Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)
-                .body(axum::body::boxed(Full::from("Erro no banco")))
+                .body(Body::from("Erro no banco"))
                 .unwrap();
         }
     };
@@ -54,13 +53,13 @@ pub async fn download(
                 header::CONTENT_DISPOSITION,
                 format!("attachment; filename=\"{}\"", nome),
             )
-            .body(axum::body::boxed(Full::from(conteudo)))
+            .body(Body::from(conteudo))
             .unwrap()
     } else {
         // Arquivo não encontrado
         Response::builder()
             .status(StatusCode::NOT_FOUND)
-            .body(axum::body::boxed(Full::from("Arquivo não encontrado")))
+            .body(Body::from("Arquivo não encontrado"))
             .unwrap()
     }
 }

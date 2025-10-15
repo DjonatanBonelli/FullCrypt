@@ -1,10 +1,13 @@
 use axum::{
-    http::{Request, StatusCode},
+    extract::State,
+    http::{Request, Response, StatusCode, header},
     middleware::Next,
-    response::Response,
+    body::Body,
 };
 use jsonwebtoken::{decode, DecodingKey, Validation, Algorithm};
 use serde::Deserialize;
+use std::sync::Arc;
+use deadpool_postgres::Pool;
 
 #[derive(Debug, Clone)]
 pub struct AuthUser {
@@ -17,20 +20,40 @@ pub struct Claims {
     pub exp: usize,
 }
 
-pub async fn require_auth<B>(
-    mut req: Request<B>,
-    next: Next<B>,
-) -> Result<Response, StatusCode> {
-    let auth_header = req
+pub async fn require_auth(
+    State(_pool): State<Arc<Pool>>,
+    mut req: Request<Body>,
+    next: Next,
+) -> Result<Response<Body>, Response<Body>> {
+    // Pega o token diretamente do cookie HttpOnly
+    let token = req
         .headers()
-        .get(axum::http::header::AUTHORIZATION)
-        .and_then(|h| h.to_str().ok());
+        .get(header::COOKIE)
+        .and_then(|v| v.to_str().ok())
+        .and_then(|cookies| {
+            cookies.split(';').find_map(|c| {
+                let c = c.trim();
+                if c.starts_with("jwt=") {
+                    Some(c.trim_start_matches("jwt=").to_string())
+                } else {
+                    None
+                }
+            })
+        });
 
-    let token = match auth_header {
-        Some(h) if h.starts_with("Bearer ") => h.trim_start_matches("Bearer ").to_string(),
-        _ => return Err(StatusCode::UNAUTHORIZED),
+    let token = match token {
+        Some(t) => t,
+        None => {
+            // Token ausente → redireciona para login
+            return Err(Response::builder()
+                .status(StatusCode::FOUND) // 302
+                .header(header::LOCATION, "/login")
+                .body(Body::empty())
+                .unwrap());
+        }
     };
 
+    // Decodifica token JWT
     let decoded = match decode::<Claims>(
         &token,
         &DecodingKey::from_secret("segredo_super".as_ref()),
@@ -38,14 +61,20 @@ pub async fn require_auth<B>(
     ) {
         Ok(c) => c,
         Err(e) => {
-            eprintln!("Erro ao decodificar token: {:?}", e);
-            return Err(StatusCode::UNAUTHORIZED);
+            eprintln!("❌ Token inválido ou expirado: {:?}", e);
+            return Err(Response::builder()
+                .status(StatusCode::FOUND)
+                .header(header::LOCATION, "/login")
+                .body(Body::empty())
+                .unwrap());
         }
     };
 
+    // Insere usuário autenticado nas extensions da request
     req.extensions_mut().insert(AuthUser {
         user_id: decoded.claims.sub,
     });
 
+    // Continua para o próximo middleware/handler
     Ok(next.run(req).await)
 }

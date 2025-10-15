@@ -1,22 +1,36 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import jwt from "jsonwebtoken";
 
-export async function middleware(req: NextRequest) {
-  const token = req.cookies.get("jwt_token")?.value || null;
+const JWT_SECRET = process.env.JWT_SECRET || "segredo_super";
 
-  // se não tiver token, redireciona pro login
+export function middleware(req: NextRequest) {
+  // Ignora rotas públicas e assets
+  const publicPaths = ["/login", "/register", "/api/", "/_next/", "/favicon.ico"];
+  if (publicPaths.some((path) => req.nextUrl.pathname.startsWith(path))) {
+    return NextResponse.next();
+  }
+
+  // Pega token do cookie HttpOnly
+  const token = req.cookies.get("jwt_token")?.value;
+
   if (!token) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  // validar token via backend
-   const res = await fetch(`${process.env.BACKEND_URL}/api/validate-token`, { headers: { Authorization: `Bearer ${token}` }})
-   if (!res.ok) return NextResponse.redirect(new URL("/login", req.url))
-
-  return NextResponse.next();
+  try {
+    // Decodifica e valida o token localmente
+    jwt.verify(token, JWT_SECRET);
+    // Se passar, continua
+    return NextResponse.next();
+  } catch (err) {
+    console.error("Token inválido:", err);
+    // Token inválido ou expirado, redireciona para login
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
 }
 
-// aplica o middleware apenas em rotas específicas
+// Aplica middleware a todas as rotas, exceto as públicas
 export const config = {
-  matcher: ["/:path*"], // rotas que exigem login
+  matcher: ["/:path*"],
 };

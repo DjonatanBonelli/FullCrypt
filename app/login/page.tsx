@@ -26,11 +26,11 @@ export default function LoginPage() {
 
       const data = await res.json();
 
-      if (res.ok && data.token) {
-        localStorage.setItem("jwt_token", data.token);
+      if (res.ok) {
         setMessage(isRegister ? "Conta criada!" : "Login OK!");
-        window.location.href = "/";
+        window.location.href = "/"; 
       } else {
+        const data = await res.json();
         setMessage(data.error || "Erro no servidor");
       }
     } catch (err) {

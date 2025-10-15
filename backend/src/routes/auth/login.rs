@@ -1,16 +1,18 @@
 use axum::{
-    extract::{State},
-    http::StatusCode,
-    response::IntoResponse,
-    Json as AxumJson,
+    extract::State,
+    http::{header, StatusCode},
+    response::Response,
+    body::Body,
+    Json,
 };
+use deadpool_postgres::Pool;
 use std::sync::Arc;
-use deadpool_postgres::{Pool, Client};
-use serde::Deserialize;
 use serde_json::json;
-use tokio_postgres::types::ToSql;
 
-use crate::{db::queries, routes::auth::auth::create_jwt};
+use super::auth::create_jwt;
+use crate::db::queries;
+
+use serde::Deserialize;
 
 #[derive(Deserialize)]
 pub struct LoginInput {
@@ -20,29 +22,60 @@ pub struct LoginInput {
 
 pub async fn login(
     State(pool): State<Arc<Pool>>,
-    AxumJson(input): AxumJson<LoginInput>,
-) -> impl IntoResponse {
-    let client: Client = match pool.get().await {
+    Json(input): Json<LoginInput>,
+) -> Response<Body> {
+    let client = match pool.get().await {
         Ok(c) => c,
-        Err(_) => return (StatusCode::INTERNAL_SERVER_ERROR, AxumJson(json!({"error": "Erro no banco"}))),
+        Err(_) => {
+            return Response::builder()
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .body(Body::from(json!({"error": "Erro no banco"}).to_string()))
+                .unwrap();
+        }
     };
 
     let stmt = match client.prepare(queries::GET_USER_BY_EMAIL).await {
         Ok(s) => s,
-        Err(_) => return (StatusCode::INTERNAL_SERVER_ERROR, AxumJson(json!({"error": "Erro no banco"}))),
+        Err(_) => {
+            return Response::builder()
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .body(Body::from(json!({"error": "Erro no banco"}).to_string()))
+                .unwrap();
+        }
     };
 
-    // sua query deve retornar o id se o email/senha baterem
     match client
-        .query_opt(&stmt, &[&input.email as &(dyn ToSql + Sync), &input.senha])
+        .query_opt(&stmt, &[&input.email as &(dyn tokio_postgres::types::ToSql + Sync), &input.senha])
         .await
     {
         Ok(Some(row)) => {
             let user_id: i32 = row.get("id");
             let token = create_jwt(user_id);
-            (StatusCode::OK, AxumJson(json!({ "token": token, "user_id": user_id })))
+
+            // Retorna o cookie HttpOnly + JSON mínimo
+            Response::builder()
+                .status(StatusCode::OK)
+                .header(
+                    header::SET_COOKIE,
+                    format!(
+                        "jwt={}; HttpOnly; Path=/; Max-Age={}; SameSite=Lax",
+                        token, 24*3600
+                    ),
+                )
+                .body(Body::from(json!({"user_id": user_id}).to_string()))
+                .unwrap()
         }
-        Ok(None) => (StatusCode::UNAUTHORIZED, AxumJson(json!({"error": "Credenciais inválidas"}))),
-        Err(_) => (StatusCode::INTERNAL_SERVER_ERROR, AxumJson(json!({"error": "Erro ao executar query"}))),
+        Ok(None) => {
+            Response::builder()
+                .status(StatusCode::UNAUTHORIZED)
+                .body(Body::from(json!({"error": "Credenciais inválidas"}).to_string()))
+                .unwrap()
+        }
+        Err(_) => {
+            Response::builder()
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .body(Body::from(json!({"error": "Erro ao executar query"}).to_string()))
+                .unwrap()
+        }
     }
 }
