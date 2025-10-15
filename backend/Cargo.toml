@@ -4,21 +4,28 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-# Backend
-axum = { version = "0.6", features = ["macros", "multipart"] }
+# Framework
+axum = { version = "0.7", features = ["macros", "multipart"] }
 tokio = { version = "1", features = ["full"] }
+hyper = { version = "1.7", features = ["full"] }
+http-body-util = "0.1"
+bytes = "1.4"
+
+# Utilitários
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 chrono = { version = "0.4", features = ["serde"] }
-hyper = "0.14"
+dotenvy = "0.15.7"
+rand = "0.8"
+base64 = "0.22.1"
+
+# Banco de dados
 tokio-postgres = { version = "0.7", features = ["with-chrono-0_4"] }
 deadpool-postgres = "0.14"
-dotenvy = "0.15.7"
 
-rand = "0.8"
-
-# AES-GCM (usa AES de 128/192/256 bits com autenticação)
-aes-gcm = "0.10" # já puxa aes, aes-soft e aesni por baixo
-base64 = "0.22.1"
-routes = "0.1.0"
+# Criptografia / JWT
+aes-gcm = "0.10"
 jsonwebtoken = { version = "10", features = ["rust_crypto"] }
+headers = "0.4"
+routes = "0.1.0"
+

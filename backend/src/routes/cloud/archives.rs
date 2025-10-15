@@ -1,44 +1,56 @@
-use axum::{extract::State, response::Json, http::StatusCode};
-use deadpool_postgres::Pool;
-use serde::Serialize;
+use axum::{
+    extract::{Extension, State},
+    http::StatusCode,
+    response::Json,
+};
 use std::sync::Arc;
-
+use deadpool_postgres::{Pool, Client};
+use serde::Serialize;
 use crate::db::queries;
+use crate::middleware::jwt::AuthUser;
 
 #[derive(Serialize)]
-pub struct Archives {
-    id: i32,
-    nome_arquivo: String,
-    criado_em: chrono::DateTime<chrono::Utc>,
+pub struct Archive {
+    pub id: i32,
+    pub nome: String,
 }
 
 pub async fn archives(
+    Extension(auth_user): Extension<AuthUser>, // já vem do middleware
     State(pool): State<Arc<Pool>>,
-) -> Result<Json<Vec<Archives>>, (StatusCode, String)> {
-    let client = pool.get().await.map_err(|e| {
-        eprintln!("Erro ao pegar conexão: {:?}", e);
-        (StatusCode::INTERNAL_SERVER_ERROR, "Erro no banco".to_string())
+) -> Result<Json<Vec<Archive>>, (StatusCode, Json<serde_json::Value>)> {
+    let user_id = auth_user.user_id;
+
+    // pega conexão do pool
+    let client: Client = pool.get().await.map_err(|_| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({ "error": "Erro no banco" })),
+        )
     })?;
 
-    let stmt = client
-        .prepare(queries::SELECT_ARQUIVOS)
-        .await
-        .map_err(|e| {
-            eprintln!("Erro no prepare: {:?}", e);
-            (StatusCode::INTERNAL_SERVER_ERROR, "Erro no banco".to_string())
-        })?;
-
-    let rows = client.query(&stmt, &[]).await.map_err(|e| {
-        eprintln!("Erro no query: {:?}", e);
-        (StatusCode::INTERNAL_SERVER_ERROR, "Erro no banco".to_string())
+    // prepara query
+    let stmt = client.prepare(queries::SELECT_ARQUIVOS).await.map_err(|_| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({ "error": "Erro no banco" })),
+        )
     })?;
 
-    let arquivos = rows
+    // executa query
+    let rows = client.query(&stmt, &[&user_id]).await.map_err(|_| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({ "error": "Erro ao buscar arquivos" })),
+        )
+    })?;
+
+    // mapeia para struct Archive
+    let arquivos: Vec<Archive> = rows
         .into_iter()
-        .map(|row| Archives {
-            id: row.get("id"),
-            nome_arquivo: row.get("nome_arquivo"),
-            criado_em: row.get("criado_em"),
+        .map(|r| Archive {
+            id: r.get("id"),
+            nome: r.get("nome_arquivo"),
         })
         .collect();
 

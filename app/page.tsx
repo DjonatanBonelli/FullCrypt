@@ -73,7 +73,11 @@ export default function Home() {
     formData.append("nome_arquivo", file.name);
     formData.append("nonce_file", btoa(String.fromCharCode(...nonceFile)));
 
-    const res = await fetch("/api/upload", { method: "POST", body: formData });
+    const res = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+      credentials: "include", 
+    })
 
     if (res.ok) {
       setStatus("Arquivo criptografado e enviado!");
@@ -107,7 +111,11 @@ export default function Home() {
       const key = await importKey(userKey);
 
       // buscar arquivo do backend
-      const res = await fetch(`/api/download/${arq.id}`);
+      const res = await fetch(`/api/download/${arq.id}`, {
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      });
+
       if (!res.ok) throw new Error("Erro ao baixar arquivo");
 
       const encryptedData = await res.arrayBuffer();
@@ -133,7 +141,10 @@ export default function Home() {
   // ---- Listagem de arquivos ----
   const loadArquivos = async () => {
     try {
-      const res = await fetch("/api/archives");
+      const res = await fetch("/api/archives", {
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
       const data = await res.json();
       setArquivos(data);
     } catch (err) {
