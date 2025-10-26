@@ -28,4 +28,6 @@ aes-gcm = "0.10"
 jsonwebtoken = { version = "10", features = ["rust_crypto"] }
 headers = "0.4"
 routes = "0.1.0"
-
+tower-http = { version = "0.5", features = ["cors"] }
+http = "1"
+cookie = "0.17"

@@ -16,7 +16,7 @@ pub struct Archive {
 }
 
 pub async fn archives(
-    Extension(auth_user): Extension<AuthUser>, // já vem do middleware
+    Extension(auth_user): Extension<AuthUser>, 
     State(pool): State<Arc<Pool>>,
 ) -> Result<Json<Vec<Archive>>, (StatusCode, Json<serde_json::Value>)> {
     let user_id = auth_user.user_id;
