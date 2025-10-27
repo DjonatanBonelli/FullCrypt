@@ -1,3 +1,3 @@
-INSERT INTO usuarios (nome, email, senha)
-VALUES ($1, $2, $3)
+INSERT INTO usuarios (nome, email, senha, pk_kyber)
+VALUES ($1, $2, $3, $4)
 RETURNING id

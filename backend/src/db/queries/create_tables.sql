@@ -3,6 +3,8 @@ CREATE TABLE usuarios (
     nome TEXT NOT NULL,
     email TEXT UNIQUE NOT NULL,
     senha TEXT NOT NULL,
+    pk_kyber BYTEA,
+    pk_kyber_criado_em TIMESTAMP,
     ultimo_login TIMESTAMP,
     criado_em TIMESTAMPTZ DEFAULT NOW()
 );
@@ -23,6 +25,9 @@ CREATE TABLE compartilhamentos (
     receiver_id INT NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
     chave_encrypted BYTEA NOT NULL,
     criado_em TIMESTAMPTZ DEFAULT NOW()
+    status TEXT
 );
+CREATE INDEX idx_compartilhamentos_receiver ON compartilhamentos(receiver_id);
+CREATE INDEX idx_compartilhamentos_sender ON compartilhamentos(sender_id);
 
-INSERT INTO usuarios (id, nome, email, senha) VALUES (3, 'teste', 'teste', 'teste')
+INSERT INTO usuarios (id, nome, email, senha) VALUES (3, 'teste', 'teste@teste.tst', 'teste')

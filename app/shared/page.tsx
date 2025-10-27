@@ -1,65 +1,95 @@
 "use client";
+import { useState, useEffect } from "react";
+import { aceitarCompartilhamento, recusarCompartilhamento } from "./handlers/handlers";
+import { handleDownload } from "../handlers/downloadFileHandlers";
+import ShareModal from "./components/ShareModal";
+import CompartilhamentoItem from "./components/CompartilhamentoItem";
+import CompartilhamentoAceito from "./components/CompartilhamentoAceito";
 
-import { useState } from "react";
+type Compartilhamento = {
+  id: number;
+  arquivo_nome: string;
+  sender_nome: string;
+  kyber_key: string;
+  status: "pendente" | "aceito" | "recusado";
+};
 
-export default function EncryptAndUpload() {
+export default function Compartilhamentos() {
+  const [compartilhamentos, setCompartilhamentos] = useState<Compartilhamento[]>([]);
   const [status, setStatus] = useState("");
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [selectedFileId, setSelectedFileId] = useState<number | null>(null);
 
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const openShareModal = (id: number) => {
+    setSelectedFileId(id);
+    setShareModalOpen(true);
+  };
 
-    setStatus("Lendo arquivo..."); 
+  useEffect(() => {
+    fetch("/api/shared", { credentials: "include" })
+      .then(res => res.json())
+      .then(data => setCompartilhamentos(data));
+  }, []);
 
-    // 1. Ler arquivo como ArrayBuffer
-    const fileBuffer = await file.arrayBuffer();
-
-    // 2. Gerar DEK (chave do arquivo)
-    const dek = await crypto.subtle.generateKey(
-      { name: "AES-GCM", length: 256 },
-      true,
-      ["encrypt", "decrypt"]
+  const handleAceitar = async (id: number) => {
+    const result = await aceitarCompartilhamento(id);
+    setCompartilhamentos(prev =>
+      prev.map(c => (c.id === result.id ? { ...c, status: result.status } : c))
     );
+  };
 
-    // Exportar DEK em raw
-    const dekRaw = await crypto.subtle.exportKey("raw", dek);
-
-    // 3. Gerar nonce para arquivo
-    const nonceFile = crypto.getRandomValues(new Uint8Array(12));
-
-    // 4. Criptografar arquivo com DEK
-    setStatus("Criptografando arquivo...");
-    const encryptedFile = await crypto.subtle.encrypt(
-      { name: "AES-GCM", iv: nonceFile },
-      dek,
-      fileBuffer
+  const handleRecusar = async (id: number) => {
+    const result = await recusarCompartilhamento(id);
+    setCompartilhamentos(prev =>
+      prev.map(c => (c.id === result.id ? { ...c, status: result.status } : c))
     );
+  };
 
-    // 7. Preparar upload
-    setStatus("Enviando...");
-
-    const formData = new FormData();
-    const fileName = `encrypted-${Date.now()}.bin`;
-
-    formData.append("file", new Blob([encryptedFile]), fileName);
-    formData.append("nonce_file", btoa(String.fromCharCode(...nonceFile)));
-    formData.append("nome_arquivo", fileName);
-
-    const res = await fetch("/api/upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (res.ok) {
-      setStatus("Arquivo criptografado e enviado!");
-    }
-  }
+  const pendentes = compartilhamentos.filter(c => c.status === "pendente");
+  const aceitos = compartilhamentos.filter(c => c.status === "aceito");
   
   return (
-    <div className="p-4">
-      <h2 className="text-lg font-bold mb-2">Shared With You</h2>
-      <input type="text" onChange={handleFileChange} />
-      <p className="mt-2 text-sm">{status}</p>
+    <div>
+      <button style={{ marginLeft: 10 }} onClick={() => setShareModalOpen(true)}>
+        🤝 Compartilhar
+      </button>
+
+      <ShareModal
+        isOpen={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        setStatus={setStatus}
+      />
+
+      <h2>Solicitações de compartilhamento</h2>
+      {pendentes.map(c => (
+        <CompartilhamentoItem
+          key={c.id}
+          arquivoNome={c.arquivo_nome}
+          senderNome={c.sender_nome}
+          onAceitar={() => handleAceitar(c.id)}
+          onRecusar={() => handleRecusar(c.id)}
+        />
+      ))}
+
+      <h2>Arquivos compartilhados com você</h2>
+      {aceitos.map(c => (
+        <div key={c.id} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <CompartilhamentoAceito
+            arquivoNome={c.arquivo_nome}
+            senderNome={c.sender_nome}
+          />
+          <button
+            onClick={() => {
+              const userKey = prompt("Informe a chave para descriptografar:");
+              if (userKey) handleDownload(c, userKey, setStatus);
+            }}
+          >
+            Baixar
+          </button>
+        </div>
+      ))}
+
+      {status && <p>{status}</p>}
     </div>
   );
 }

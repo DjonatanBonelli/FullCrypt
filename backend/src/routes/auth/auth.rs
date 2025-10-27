@@ -9,6 +9,7 @@ pub struct Claims {
 }
 
 pub fn create_jwt(user_id: i32) -> String {
+    let secret = std::env::var("JWT_SECRET").unwrap_or_else(|_| "segredo_super".to_string());
     let expiration = Utc::now() + chrono::Duration::hours(24);
 
     let claims = Claims {
@@ -16,20 +17,21 @@ pub fn create_jwt(user_id: i32) -> String {
         exp: expiration.timestamp() as usize,
     };
 
-    encode(
-        &Header::default(),
-        &claims,
-        &EncodingKey::from_secret("segredo_super".as_ref()),        // mudar pra .env: let secret = std::env::var("JWT_SECRET").unwrap_or_else(|_| "segredo_super".to_string());
-
-    )
-    .expect("Falha ao criar token JWT")
+    encode(&Header::default(), &claims, &EncodingKey::from_secret(secret.as_ref()))
+        .expect("Falha ao criar token JWT")
 }
 
 pub fn verify_jwt(token: &str) -> Result<Claims, jsonwebtoken::errors::Error> {
-    let decoded = decode::<Claims>(
+    let secret = std::env::var("JWT_SECRET").unwrap_or_else(|_| "segredo_super".to_string());
+    match decode::<Claims>(
         token,
-        &DecodingKey::from_secret("segredo_super".as_ref()),
+        &DecodingKey::from_secret(secret.as_ref()),
         &Validation::new(Algorithm::HS256),
-    )?;
-    Ok(decoded.claims)
+    ) {
+        Ok(decoded) => Ok(decoded.claims),
+        Err(e) => {
+            eprintln!("❌ Falha ao decodificar JWT: {:?}", e);
+            Err(e)
+        }
+    }
 }
