@@ -10,7 +10,7 @@ pub struct Compartilhamento {
     pub sender_id: i32,
     pub sender_nome: String,
     pub receiver_id: i32,
-    pub chave_encrypted: Vec<u8>,
+    pub chave_encrypted: String,
     pub status: String,
     pub criado_em: DateTime<Utc>,
 }

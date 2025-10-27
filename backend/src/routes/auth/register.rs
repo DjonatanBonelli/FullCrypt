@@ -19,7 +19,7 @@ pub struct RegisterInput {
     pub nome: String,
     pub email: String,
     pub senha: String,
-    pub pk_kyber: Vec<u8>,
+    pub pk_kyber: String,
 }
 
 pub async fn register(

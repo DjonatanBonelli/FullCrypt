@@ -49,26 +49,31 @@ export async function encryptBytesWithHpke(pubBytes: Uint8Array, plaintext: Uint
 
   return {
     enc: b64uEncode(enc),
-    ciphertext: b64uEncode(ciphertext),
+    ciphertext: ciphertext,
     aead: "Aes256Gcm",
     kem: "MlKem768",
   };
 }
 
 // === Descriptografa bytes com chave privada (raw bytes) ===
-export async function decryptBytesWithHpke(privBytes: Uint8Array, enc: string, ciphertext: string) {
-  const suite = await makeSuite();
-  const sk = await suite.kem.importKey("raw", privBytes, false); // private key raw
+export async function decryptBytesWithHpke(
+  privBytes: Uint8Array,
+  enc: Uint8Array,            
+  ciphertext: Uint8Array   
+) {
 
-  const encBytes = b64uDecode(enc);
-  const cipherBytes = b64uDecode(ciphertext);
+  //console.log(privBytes.length, enc.length, ciphertext.length);
+  //console.log(enc);
+
+  const suite = await makeSuite();
+  const sk = await suite.kem.importKey("raw", privBytes, false); 
 
   const recipient = await suite.createRecipientContext({
     recipientKey: sk,
-    enc: encBytes,
+    enc: enc,
   });
 
-  const plaintext = await recipient.open(cipherBytes);
+  const plaintext = await recipient.open(ciphertext); 
   return new Uint8Array(plaintext);
 }
 

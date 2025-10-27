@@ -47,7 +47,7 @@ export default function Compartilhamentos() {
 
   const pendentes = compartilhamentos.filter(c => c.status === "pendente");
   const aceitos = compartilhamentos.filter(c => c.status === "aceito");
-
+  
   return (
     <div>
       <button style={{ marginLeft: 10 }} onClick={() => setShareModalOpen(true)}>
@@ -78,7 +78,14 @@ export default function Compartilhamentos() {
             arquivoNome={c.arquivo_nome}
             senderNome={c.sender_nome}
           />
-          <button onClick={() => handleDownload(c, c.kyber_key, setStatus)}>Baixar</button>
+          <button
+            onClick={() => {
+              const userKey = prompt("Informe a chave para descriptografar:");
+              if (userKey) handleDownload(c, userKey, setStatus);
+            }}
+          >
+            Baixar
+          </button>
         </div>
       ))}
 

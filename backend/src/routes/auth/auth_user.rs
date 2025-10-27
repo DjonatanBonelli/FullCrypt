@@ -45,7 +45,6 @@ where
             
         // 3️⃣ verifica o JWT
         let claims = verify_jwt(&token).map_err(|_| StatusCode::UNAUTHORIZED)?;
-
         Ok(AuthUser(claims.sub))
     }
 }

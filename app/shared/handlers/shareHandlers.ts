@@ -1,13 +1,5 @@
 import { fetchUserPublicKey } from "../../cloud/handlers/userHandlers";
-import { b64uEncode, encryptBytesWithHpke } from "../../crypto/hpke-kem";
-
-function kyberBytesToJwk(pubKeyBytes: Uint8Array) {
-  return {
-    kty: "OKP",          // tipo de chave esperado pelo hpke
-    crv: "Kyber768",     // curva fictícia/placeholder
-    x: b64uEncode(pubKeyBytes) // encode em base64url
-  };
-}
+import { encryptBytesWithHpke } from "../../crypto/hpke-kem";
 
 export const handleShare = async (
   file: File,
@@ -20,20 +12,20 @@ export const handleShare = async (
     
     const fileBytes = new Uint8Array(await file.arrayBuffer());
     setStatus("🔑 Buscando chave pública do destinatário...");
-    
-    const rawPub = await fetchUserPublicKey(targetEmail);
-    if (!rawPub) throw new Error("Usuário não encontrado");
 
-    // aqui já passamos os bytes diretamente
-    const { enc, ciphertext } = await encryptBytesWithHpke(rawPub, fileBytes);
+    const pk = await fetchUserPublicKey(targetEmail);
+    if (!pk) throw new Error("Usuário não encontrado");
 
+    // Criptografa
+    const { enc, ciphertext } = await encryptBytesWithHpke(pk, fileBytes);
+
+    // Monta o form
     const formData = new FormData();
-      formData.append("file", new Blob([ciphertext]), file.name + ".enc");
-      formData.append("nome_arquivo", file.name);
-      formData.append("email", targetEmail);
-      formData.append("chave_encrypted", enc); // enviar string diretamente
-      // opcional: só envia nonce se tiver
-      if (nonce) formData.append("nonce_file", nonce); 
+    formData.append("file", new Blob([ciphertext]), file.name + ".enc");
+    formData.append("nome_arquivo", file.name);
+    formData.append("email", targetEmail);
+    formData.append("chave_encrypted", enc);
+    if (nonce) formData.append("nonce_file", nonce);
 
     setStatus("📤 Enviando arquivo criptografado...");
     const res = await fetch("/api/share", {

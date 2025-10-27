@@ -57,14 +57,16 @@ pub async fn get_user_pk(
     };
 
     if let Some(r) = row {
-        // pk_kyber como Vec<u8>
-        let pk_kyber: Vec<u8> = r.get("pk_kyber");
-        (StatusCode::OK, AxumJson(json!({ "pk_kyber": pk_kyber })))
+        let pk_kyber: String = r.get("pk_kyber");
+
+        (
+            StatusCode::OK,
+            AxumJson(json!({ "pk_kyber": pk_kyber })),
+        )
     } else {
-        // usuário não encontrado
         (
             StatusCode::UNPROCESSABLE_ENTITY,
             AxumJson(json!({ "error": "Usuário não encontrado" })),
         )
     }
-}
+    }
