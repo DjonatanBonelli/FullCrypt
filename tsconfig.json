@@ -1,14 +1,16 @@
 {
   "compilerOptions": {
     "allowImportingTsExtensions": true,
-    "target": "ESNext",
+    //"target": "ESNext",
+    "target": "ES2020",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
-    "module": "esnext",
+    //"module": "esnext",
+    "module": "CommonJS",
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
@@ -23,6 +25,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/page.tsx", "app/crypto/kyber.js", "app/scripts/test-kyber.js", "app/crypto/hpke-kem.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/page.tsx", "app/crypto/kyber.js", "app/scripts/test-kyber.js", "app/crypto/hpke-kem.ts", "app/crypto/dilithium.ts"],
   "exclude": ["node_modules"]
 }
