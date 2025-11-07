@@ -58,6 +58,7 @@ pub async fn get_user_pk(
 
     if let Some(r) = row {
         let pk_kyber: String = r.get("pk_kyber");
+        let pk_dilithium: String = r.get("pk_dilithium");
 
         (
             StatusCode::OK,

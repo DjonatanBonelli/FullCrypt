@@ -54,7 +54,7 @@ async fn main() {
         .route("/api/shared/:id/aceitar", post(shared_handlers::aceitar))
         .route("/api/shared/:id/recusar", post(shared_handlers::recusar))
         .route("/api/share", post(routes::shared::share::compartilhar))
-        .route("/api/users/pk_kyber", get(routes::users::get_pk_kyber::get_user_pk))
+        .route("/api/users/pk", get(routes::users::get_pk_kyber::get_user_pk))
         .layer(from_fn_with_state(pool.clone(), require_auth));
 
     let private_routes = private_routes.merge(shared_routes);

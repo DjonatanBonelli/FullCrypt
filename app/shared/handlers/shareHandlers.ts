@@ -1,3 +1,4 @@
+import { signWithDilithium } from "@/app/crypto/dilithium";
 import { fetchUserPublicKey } from "../../cloud/handlers/userHandlers";
 import { encryptBytesWithHpke } from "../../crypto/hpke-kem";
 
@@ -13,11 +14,19 @@ export const handleShare = async (
     const fileBytes = new Uint8Array(await file.arrayBuffer());
     setStatus("🔑 Buscando chave pública do destinatário...");
 
-    const pk = await fetchUserPublicKey(targetEmail);
-    if (!pk) throw new Error("Usuário não encontrado");
+    const userKeys = (await fetchUserPublicKey(targetEmail)) as
+      | { pk_kyber?: Uint8Array; pk_dilithium?: Uint8Array }
+      | null;
+    if (!userKeys || !userKeys.pk_kyber || !userKeys.pk_dilithium)
+      throw new Error("Usuário não encontrado");
+    const { pk_kyber, pk_dilithium } = userKeys;
 
     // Criptografa
-    const { enc, ciphertext } = await encryptBytesWithHpke(pk, fileBytes);
+    const { enc, ciphertext } = await encryptBytesWithHpke(pk_kyber, fileBytes);
+
+    const encBytes = new Uint8Array(Buffer.from(enc, "base64"));
+
+    const signature = signWithDilithium(encBytes, pk_dilithium, 2);
 
     // Monta o form
     const formData = new FormData();

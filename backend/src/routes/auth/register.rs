@@ -20,6 +20,7 @@ pub struct RegisterInput {
     pub email: String,
     pub senha: String,
     pub pk_kyber: String,
+    pub pk_dilithium: String,
 }
 
 pub async fn register(
@@ -53,7 +54,7 @@ pub async fn register(
     let row = match client
         .query_one(
             &stmt,
-            &[&input.nome as &(dyn ToSql + Sync), &input.email, &input.senha, &input.pk_kyber,],
+            &[&input.nome as &(dyn ToSql + Sync), &input.email, &input.senha, &input.pk_kyber, &input.pk_dilithium],
         )
         .await
     {

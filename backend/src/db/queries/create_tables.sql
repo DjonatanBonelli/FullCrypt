@@ -4,7 +4,7 @@ CREATE TABLE usuarios (
     email TEXT UNIQUE NOT NULL,
     senha TEXT NOT NULL,
     pk_kyber BYTEA,
-    pk_kyber_criado_em TIMESTAMP,
+    pk_dilithium BYTEA,
     ultimo_login TIMESTAMP,
     criado_em TIMESTAMPTZ DEFAULT NOW()
 );

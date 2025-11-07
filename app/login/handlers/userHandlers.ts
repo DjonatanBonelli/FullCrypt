@@ -1,3 +1,4 @@
+import { generateDilithiumKeyPair } from "@/app/crypto/dilithium";
 import { b64uEncode, generateHpkeKeyPair } from "../../crypto/hpke-kem"; // seu handler HPKE
 
 export const criarUsuario = async (
@@ -10,8 +11,13 @@ export const criarUsuario = async (
 
     setStatus?.("🔑 Gerando par de chaves HPKE...");
     const { publicKey: hpkePub, privateKey: hpkePriv } = await generateHpkeKeyPair();
-    console.log(b64uEncode(Uint8Array.from(hpkePub)));
-    console.log(b64uEncode(Uint8Array.from(hpkePriv)));
+    const { publicKey, privateKey } = await generateDilithiumKeyPair(2);
+
+    console.log("Dilithium Public Key: ", b64uEncode(Uint8Array.from(publicKey)));
+    console.log("Dilithium Private Key: ", b64uEncode(Uint8Array.from(privateKey)));
+
+    console.log("Kyber Public Key: ", b64uEncode(Uint8Array.from(hpkePub)));
+    console.log("Kyber Private Key: ", b64uEncode(Uint8Array.from(hpkePriv)));
 
     setStatus?.("📤 Enviando dados para o servidor...");
 
@@ -24,6 +30,7 @@ export const criarUsuario = async (
         email,
         senha,
         pk_kyber: b64uEncode(Uint8Array.from(hpkePub)),
+        pk_dilithium: b64uEncode(Uint8Array.from(publicKey)),
       }),
     });
 
