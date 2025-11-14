@@ -1,27 +1,19 @@
-import { generateDilithiumKeyPair } from "@/app/crypto/dilithium";
-import { b64uEncode, generateHpkeKeyPair } from "../../crypto/hpke-kem"; // seu handler HPKE
+"use client";
+import { b64uEncode, generateHpkeKeyPair } from "../../crypto/hpke-kem";
 
-export const criarUsuario = async (
-  nome: string,
-  email: string,
-  senha: string,
-  setStatus?: (msg: string) => void
-) => {
+export const criarUsuario = async (nome: string, email: string, senha: string, setStatus?: (msg: string) => void) => {
   try {
+    setStatus?.("🔑 Gerando chaves...");
 
-    setStatus?.("🔑 Gerando par de chaves HPKE...");
-    const { publicKey: hpkePub, privateKey: hpkePriv } = await generateHpkeKeyPair();
-    const { publicKey, privateKey } = await generateDilithiumKeyPair(2);
+    const { publicKey: hpkePub, privateKey: hpkePriv } =
+      await generateHpkeKeyPair();
 
-    console.log("Dilithium Public Key: ", b64uEncode(Uint8Array.from(publicKey)));
-    console.log("Dilithium Private Key: ", b64uEncode(Uint8Array.from(privateKey)));
+    const dil = await import("@/app/crypto/dilithium");
+    const { publicKey: dPub, privateKey: dPriv } =
+      await dil.generateDilithiumKeyPair(2);
 
-    console.log("Kyber Public Key: ", b64uEncode(Uint8Array.from(hpkePub)));
-    console.log("Kyber Private Key: ", b64uEncode(Uint8Array.from(hpkePriv)));
-
-    setStatus?.("📤 Enviando dados para o servidor...");
-
-    // Envia dados pro backend
+    // manda pro backend
+    setStatus?.("📤 Enviando dados...");
     const res = await fetch("/api/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -30,23 +22,37 @@ export const criarUsuario = async (
         email,
         senha,
         pk_kyber: b64uEncode(Uint8Array.from(hpkePub)),
-        pk_dilithium: b64uEncode(Uint8Array.from(publicKey)),
+        pk_dilithium: b64uEncode(Uint8Array.from(dPub)),
       }),
     });
 
     if (!res.ok) throw new Error("Erro ao criar usuário");
 
-    // Baixar chave privada HPKE
-    const privB64 = b64uEncode(Uint8Array.from(hpkePriv));
-    const blob = new Blob([privB64], { type: "text/plain" });
+    // montar arquivo único
+    const fileObj = {
+      kyber: {
+        public: b64uEncode(hpkePub),
+        private: b64uEncode(hpkePriv),
+      },
+      dilithium: {
+        public: b64uEncode(dPub),
+        private: b64uEncode(dPriv),
+      },
+    };
+
+    const blob = new Blob([JSON.stringify(fileObj, null, 2)], {
+      type: "application/json",
+    });
+
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${email}_hpke_private.txt`;
+    a.download = `${email}_keys.json`;
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
-    setStatus?.("Usuário criado com sucesso! Baixe suas chaves privadas.");
+
+    setStatus?.("Usuário criado! Arquivo de chaves baixado.");
   } catch (err) {
     console.error(err);
     setStatus?.("Erro ao criar usuário");

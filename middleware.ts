@@ -11,7 +11,11 @@ export async function middleware(req: NextRequest) {
   if (
     ["/login", "/register", "/favicon.ico"].includes(pathname) ||
     pathname.startsWith("/_next") ||
-    pathname.startsWith("/api/auth") 
+    pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/static") ||
+    pathname.startsWith("/favicon") ||
+    pathname.startsWith("/dilithium.wasm") ||
+    pathname.match(/\.(svg|png|jpg|jpeg|gif|ico|js|css|wasm)$/)
   ) {
     return NextResponse.next();
   }
