@@ -1,3 +1,3 @@
-SELECT pk_kyber, pk_dilithium 
+SELECT pk_kyber
 FROM usuarios 
 WHERE email = $1;

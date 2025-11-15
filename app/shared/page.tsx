@@ -5,6 +5,9 @@ import { handleDownload } from "../handlers/downloadFileHandlers";
 import ShareModal from "./components/ShareModal";
 import CompartilhamentoItem from "./components/CompartilhamentoItem";
 import CompartilhamentoAceito from "./components/CompartilhamentoAceito";
+import { verifyWithDilithium } from "../crypto/dilithium";
+import { fetchDilithiumPublicKey, fetchKyberPublicKey } from "../cloud/handlers/userHandlers";
+import { b64uDecode } from "../crypto/hpke-kem";
 
 type Compartilhamento = {
   id: number;
@@ -12,6 +15,10 @@ type Compartilhamento = {
   sender_nome: string;
   kyber_key: string;
   status: "pendente" | "aceito" | "recusado";
+  sender_email: string;
+  receiver_email: string;
+  signature: string;
+  verified?: boolean | "loading";
 };
 
 export default function Compartilhamentos() {
@@ -26,10 +33,34 @@ export default function Compartilhamentos() {
   };
 
   useEffect(() => {
-    fetch("/api/shared", { credentials: "include" })
-      .then(res => res.json())
-      .then(data => setCompartilhamentos(data));
-  }, []);
+  fetch("/api/shared", { credentials: "include" })
+    .then(res => res.json())
+    .then(async data => {
+      const withLoading = data.map((c: any) => ({ ...c, verified: "loading" }));
+      setCompartilhamentos(withLoading);
+
+      const checked = await Promise.all(
+        withLoading.map(async c => {
+          try {
+            const pk = await fetchDilithiumPublicKey(c.sender_email);
+
+            const sig = b64uDecode(c.signature);
+
+            const msg = b64uDecode(c.chave_encrypted);
+
+            const ok = await verifyWithDilithium(sig, msg, pk, 2);
+
+            return { ...c, verified: ok };
+          } catch (e) {
+            console.log(e);
+            return { ...c, verified: false };
+          }
+        })
+      );
+
+      setCompartilhamentos(checked);
+    });
+}, []);
 
   const handleAceitar = async (id: number) => {
     const result = await aceitarCompartilhamento(id);

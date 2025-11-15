@@ -21,6 +21,7 @@ pub async fn compartilhar(
     let mut nonce = None;
     let mut email = None;
     let mut chave_encrypted = None;
+    let mut signature = None;
 
     while let Ok(Some(field)) = multipart.next_field().await {
         let name = field.name().unwrap_or_default().to_string(); // já copia para String
@@ -41,15 +42,16 @@ pub async fn compartilhar(
             },
             "email" => email = Some(String::from_utf8_lossy(&bytes).to_string()),
             "chave_encrypted" => chave_encrypted = Some(String::from_utf8_lossy(&bytes).to_string()),
+            "signature" => signature = Some(String::from_utf8_lossy(&bytes).to_string()),
             _ => println!("⚠ Field desconhecido: {}", name),
         }
     }
 
     // valida campos obrigatórios
-    let (nome_arquivo, conteudo, email, chave_encrypted) = match (
-        nome_arquivo, conteudo, email, chave_encrypted,
+    let (nome_arquivo, conteudo, email, chave_encrypted, signature) = match (
+        nome_arquivo, conteudo, email, chave_encrypted, signature,
     ) {
-        (Some(nf), Some(c), Some(e), Some(k)) => (nf, c, e, k),
+        (Some(nf), Some(c), Some(e), Some(k), Some(s)) => (nf, c, e, k, s),
         _ => {
             eprintln!("❌ Campos ausentes no multipart");
             return (StatusCode::BAD_REQUEST, "Campos ausentes".to_string());
@@ -107,9 +109,9 @@ pub async fn compartilhar(
 
     // Inserir compartilhamento
     if let Err(err) = tx.execute(
-        "INSERT INTO compartilhamentos (arquivo_id, sender_id, receiver_id, status, criado_em, chave_encrypted)
-         VALUES ($1, $2, $3, 'pendente', NOW(), $4)",
-        &[&arquivo_id, &auth_user.user_id, &receiver_id, &chave_encrypted],
+        "INSERT INTO compartilhamentos (arquivo_id, sender_id, receiver_id, status, criado_em, chave_encrypted, signature)
+         VALUES ($1, $2, $3, 'pendente', NOW(), $4, $5)",
+        &[&arquivo_id, &auth_user.user_id, &receiver_id, &chave_encrypted, &signature],
     ).await {
         eprintln!("❌ Erro inserindo compartilhamento: {:?}", err);
         return (StatusCode::INTERNAL_SERVER_ERROR, format!("Erro DB: {:?}", err));
