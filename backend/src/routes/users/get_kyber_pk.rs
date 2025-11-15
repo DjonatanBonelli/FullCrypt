@@ -1,5 +1,5 @@
 use axum::{
-    extract::{State},
+    extract::{State, Query},
     http::StatusCode,
     response::IntoResponse,
     Json as AxumJson,
@@ -9,23 +9,16 @@ use deadpool_postgres::{Pool, Client};
 use serde_json::json;
 use tokio_postgres::types::ToSql;
 
-use crate::{
-    db::queries,
-    routes::auth::auth::create_jwt, 
-};
+use crate::db::queries;
 
 #[derive(serde::Deserialize)]
-pub struct RegisterInput {
-    pub nome: String,
+pub struct PkQuery {
     pub email: String,
-    pub senha: String,
-    pub pk_kyber: String,
-    pub pk_dilithium: String,
 }
 
-pub async fn register(
+pub async fn get_kyber_pk(
     State(pool): State<Arc<Pool>>,
-    AxumJson(input): AxumJson<RegisterInput>,
+    Query(params): Query<PkQuery>,
 ) -> impl IntoResponse {
     // pega client do pool
     let client: Client = match pool.get().await {
@@ -39,8 +32,8 @@ pub async fn register(
         }
     };
 
-    // prepara e executa a query
-    let stmt = match client.prepare(queries::REGISTER_USER).await {
+    // prepara query
+    let stmt = match client.prepare(queries::GET_KYBER_PK).await {
         Ok(s) => s,
         Err(e) => {
             eprintln!("Erro ao preparar query: {:?}", e);
@@ -48,16 +41,11 @@ pub async fn register(
                 StatusCode::INTERNAL_SERVER_ERROR,
                 AxumJson(json!({ "error": "Erro no banco" })),
             );
-        }
+        } 
     };
 
-    let row = match client
-        .query_one(
-            &stmt,
-            &[&input.nome as &(dyn ToSql + Sync), &input.email, &input.senha, &input.pk_kyber, &input.pk_dilithium],
-        )
-        .await
-    {
+    // executa query
+    let row = match client.query_opt(&stmt, &[&params.email as &(dyn ToSql + Sync)]).await {
         Ok(r) => r,
         Err(e) => {
             eprintln!("Erro ao executar query: {:?}", e);
@@ -68,17 +56,17 @@ pub async fn register(
         }
     };
 
-    // id vindo da query
-    let user_id: i32 = row.get("id");
+    if let Some(r) = row {
+        let pk_kyber: String = r.get("pk_kyber");
 
-    // cria JWT
-    let token = create_jwt(user_id);
-
-    (
-        StatusCode::OK,
-        AxumJson(json!({
-            "token": token,
-            "user_id": user_id
-        })),
-    )
-}
+        (
+            StatusCode::OK,
+            AxumJson(json!({ "pk_kyber": pk_kyber })),
+        )
+    } else {
+        (
+            StatusCode::UNPROCESSABLE_ENTITY,
+            AxumJson(json!({ "error": "Usuário não encontrado" })),
+        )
+    }
+    }

@@ -16,7 +16,7 @@ pub struct PkQuery {
     pub email: String,
 }
 
-pub async fn get_user_pk(
+pub async fn get_dilithium_pk(
     State(pool): State<Arc<Pool>>,
     Query(params): Query<PkQuery>,
 ) -> impl IntoResponse {
@@ -33,7 +33,7 @@ pub async fn get_user_pk(
     };
 
     // prepara query
-    let stmt = match client.prepare(queries::GET_USER_PK).await {
+    let stmt = match client.prepare(queries::GET_DILITHIUM_PK).await {
         Ok(s) => s,
         Err(e) => {
             eprintln!("Erro ao preparar query: {:?}", e);
@@ -57,11 +57,11 @@ pub async fn get_user_pk(
     };
 
     if let Some(r) = row {
-        let pk_kyber: String = r.get("pk_kyber");
+        let pk_dilithium: String = r.get("pk_dilithium");
 
         (
             StatusCode::OK,
-            AxumJson(json!({ "pk_kyber": pk_kyber })),
+            AxumJson(json!({ "pk_dilithium": pk_dilithium })),
         )
     } else {
         (

@@ -5,4 +5,5 @@ pub const SELECT_ARQUIVOS: &str = include_str!("select_arquivos.sql");
 pub const REGISTER_USER: &str = include_str!("register_user.sql");
 pub const GET_USER_BY_EMAIL: &str = include_str!("get_user_by_email.sql");
 pub const UPDATE_LAST_LOGIN: &str = include_str!("update_last_login.sql");
-pub const GET_USER_PK: &str = include_str!("get_user_pk.sql");
+pub const GET_KYBER_PK: &str = include_str!("get_kyber_pk.sql");
+pub const GET_DILITHIUM_PK: &str = include_str!("get_dilithium_pk.sql");

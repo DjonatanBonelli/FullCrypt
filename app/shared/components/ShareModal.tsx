@@ -11,6 +11,7 @@ type ShareModalProps = {
 export default function ShareModal({ isOpen, onClose, setStatus }: ShareModalProps) {
   const [file, setFile] = useState<File | null>(null);
   const [recipient, setRecipient] = useState("");
+  const [secretKey, setSecretKey] = useState("");
 
   if (!isOpen) return null;
 
@@ -19,7 +20,7 @@ export default function ShareModal({ isOpen, onClose, setStatus }: ShareModalPro
     if (!file || !recipient) return;
 
     // chama o handler centralizado
-    await handleShare(file, recipient, setStatus);
+    await handleShare(file, recipient, secretKey, setStatus);
     onClose();
   };
 
@@ -39,6 +40,14 @@ export default function ShareModal({ isOpen, onClose, setStatus }: ShareModalPro
           <input
             type="file"
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            required
+            style={inputStyle}
+          />
+          <input
+            type="text"
+            placeholder="Sua SK Dilithium"
+            value={secretKey}
+            onChange={(e) => setSecretKey(e.target.value)}
             required
             style={inputStyle}
           />

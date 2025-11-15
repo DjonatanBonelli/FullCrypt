@@ -27,10 +27,11 @@ pub async fn listar(
     let rows = client
         .query(
             "
-            SELECT c.id, c.arquivo_id, a.nome_arquivo, c.sender_id, u.nome as sender_nome, c.receiver_id, c.chave_encrypted, c.status, c.criado_em
+            SELECT c.id, c.arquivo_id, a.nome_arquivo, c.sender_id, u1.nome as sender_nome, u1.email AS sender_email, u2.email AS receiver_email, c.receiver_id, c.chave_encrypted, c.signature, c.status, c.criado_em
             FROM compartilhamentos c
             JOIN arquivos a ON c.arquivo_id = a.id
-            JOIN usuarios u ON c.sender_id = u.id
+            JOIN usuarios u1 ON c.sender_id = u1.id
+            JOIN usuarios u2 ON c.receiver_id = u2.id 
             WHERE c.receiver_id = $1
             ",
             &[&user_id],
@@ -45,7 +46,10 @@ pub async fn listar(
         sender_id: r.get("sender_id"),
         sender_nome: r.get("sender_nome"),
         receiver_id: r.get("receiver_id"),
+        sender_email: r.get("sender_email"),
+        receiver_email: r.get("receiver_email"),
         chave_encrypted: r.get::<_, String>("chave_encrypted"),
+        signature: r.get::<_, String>("signature"),
         status: r.get("status"),
         criado_em: r.get("criado_em"),
     }).collect();
