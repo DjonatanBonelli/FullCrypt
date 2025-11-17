@@ -6,19 +6,28 @@ export const handleDownload = async (arq: any, userKey: string, setStatus: any) 
   try {
     const key = await importKey(userKey);
     const res = await fetch(`/api/download/${arq.id}`, { credentials: "include" });
+
     if (!res.ok) throw new Error("Erro ao baixar arquivo");
-    const encrypted = await res.arrayBuffer();
-    const iv = new Uint8Array(12); // TODO: usar nonce real
-    const decrypted = await decryptData(encrypted, key, iv);
+
+    const { encrypted, nonce, nome_arquivo } = await res.json();
+    
+    const encryptedBytes = Uint8Array.from(atob(encrypted), c => c.charCodeAt(0));
+
+    const iv = Uint8Array.from(atob(nonce), c => c.charCodeAt(0));
+
+    const decrypted = await decryptData(encryptedBytes, key, iv);
+
     const blob = new Blob([decrypted]);
     const url = URL.createObjectURL(blob);
+
     const a = document.createElement("a");
     a.href = url;
-    a.download = arq.nome_arquivo;
+    a.download = nome_arquivo;
     a.click();
     URL.revokeObjectURL(url);
+
   } catch (err) {
     console.error(err);
-    setStatus("Erro ao descriptografar arquivo");
+    setStatus("Erro ao descriptografar");
   }
 };

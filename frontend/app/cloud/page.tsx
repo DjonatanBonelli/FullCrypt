@@ -4,7 +4,7 @@ import FileUpload from "../../components/cloud/FileUpload";
 import FileList from "../../components/cloud/FileList";
 import KeyInput from "../../components/cloud/KeyInput";
 import { ThemeSwitcher } from "@/components/ui/ThemeSwitcher";
-import { Modal } from "@/components/ui/Modal";
+import { Modal } from "@/components/cloud/modal/Modal";
 import SwitchBox from "@/components/cloud/SwitchBox";
 
 export default function CloudPage() {
