@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { handleShare } from "../handlers/shareHandlers";
+import { handleShare } from "../../app/shared/handlers/shareHandlers";
 
 type ShareModalProps = {
   isOpen: boolean;

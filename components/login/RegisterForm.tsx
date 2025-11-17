@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { criarUsuario } from "../handlers/userHandlers";
+import { criarUsuario } from "../../app/login/handlers/userHandlers";
 
 export default function RegisterForm() {
   const [nome, setNome] = useState("");

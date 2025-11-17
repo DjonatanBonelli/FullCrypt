@@ -2,9 +2,9 @@
 import { useState, useEffect } from "react";
 import { aceitarCompartilhamento, recusarCompartilhamento } from "./handlers/handlers";
 import { handleDownload } from "../handlers/downloadFileHandlers";
-import ShareModal from "./components/ShareModal";
-import CompartilhamentoItem from "./components/CompartilhamentoItem";
-import CompartilhamentoAceito from "./components/CompartilhamentoAceito";
+import ShareModal from "../../components/share/ShareModal";
+import CompartilhamentoItem from "../../components/share/CompartilhamentoItem";
+import CompartilhamentoAceito from "../../components/share/CompartilhamentoAceito";
 import { verifyWithDilithium } from "../crypto/dilithium";
 import { fetchDilithiumPublicKey, fetchKyberPublicKey } from "../cloud/handlers/userHandlers";
 import { b64uDecode } from "../crypto/hpke-kem";
