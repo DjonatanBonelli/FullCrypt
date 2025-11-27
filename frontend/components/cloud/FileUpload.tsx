@@ -55,6 +55,7 @@ export default function FileUpload({ loadArquivos }: { loadArquivos: () => void 
 
       <Button
         //disabled={!file}
+        className="neon-btn"
         onClick={() => file && handleUpload(file, setStatus, loadArquivos)}
       >
         Enviar

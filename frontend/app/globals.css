@@ -54,22 +54,22 @@ body {
 
 .neon-box {
   background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(140, 90, 255, 0.5);
+  /* border: 1px solid rgba(140, 90, 255, 0.5); */
   border-radius: 12px;
-  padding: 16px;
+  /* padding: 16px; */
   backdrop-filter: blur(10px);
   transition: 0.2s;
-  box-shadow:
+/*   box-shadow:
     0 0 8px rgba(140, 90, 255, 0.4),
-    inset 0 0 8px rgba(140, 90, 255, 0.15);
+    inset 0 0 8px rgba(140, 90, 255, 0.15); */
 }
 
-.neon-box:hover {
+/* .neon-box:hover {
   box-shadow:
     0 0 12px rgba(140, 90, 255, 0.7),
     inset 0 0 12px rgba(140, 90, 255, 0.25);
   border-color: rgba(180, 120, 255, 0.8);
-}
+} */
 
 /*--------------------------- BOTÕES ---------------------------*/
 
@@ -94,6 +94,39 @@ body {
   transform: translateY(-1px);
 }
 
+.gray-btn {
+  color: #fff !important;                     
+  border: 1px solid transparent;       
+  border-radius: 8px;
+  padding: 10px 25px;
+  background: transparent;
+  transition: 0.2s ease;
+}
+
+.gray-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.gray-btn.active,
+.gray-btn[data-active="true"] {
+  color: #fff !important;
+  /* border: 1px solid rgb(165, 80, 255); */
+  background: color-mix(in srgb, rgb(165, 80, 255) 20%, transparent);
+  box-shadow:
+    0 0 4px rgb(165, 80, 255),
+    inset 0 0 0.5px rgb(165, 80, 255);
+}
+
+/* .gray-btn.active:hover,
+.gray-btn[data-active="true"]:hover {
+  background: color-mix(in srgb, rgb(165, 80, 255) 30%, transparent);
+  box-shadow:
+    0 0 3px rgb(165, 80, 255),
+    inset 0 0 2px rgb(165, 80, 255),
+    0 0 8px rgb(165, 80, 255);
+  transform: translateY(-1px);
+}
+ */
 .transparent-btn {
   background: transparent !important;
   box-shadow: none !important;

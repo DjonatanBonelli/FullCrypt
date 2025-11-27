@@ -169,19 +169,19 @@ var _s = __turbopack_context__.k.signature();
 "use client";
 ;
 function Button(param) {
-    let { children, onClick } = param;
+    let { children, onClick, className } = param;
     _s();
     const { theme } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$providers$2f$ThemeProvider$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useTheme"])();
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
-        className: "neon-btn rounded-md px-6 py-1.5",
+        className: "rounded-md px-6 py-1.5 ".concat(className || ""),
+        onClick: onClick,
         style: {
             color: theme.accent.primary
         },
-        onClick: onClick,
         children: children
     }, void 0, false, {
         fileName: "[project]/components/ui/Button.tsx",
-        lineNumber: 13,
+        lineNumber: 14,
         columnNumber: 5
     }, this);
 }
@@ -233,6 +233,7 @@ function Header() {
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                 className: "flex items-center gap-4",
                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$Button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
+                    className: "neon-btn",
                     children: "Entrar"
                 }, void 0, false, {
                     fileName: "[project]/components/layout/Header.tsx",

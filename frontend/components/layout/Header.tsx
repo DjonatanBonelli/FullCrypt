@@ -22,7 +22,8 @@ export function Header() {
       <div className="flex items-center gap-4">
         {/* Placeholder para botões, menu, perfil... */}
         {/* <ThemeSwitcher /> */}
-        <Button>
+        <Button
+        className="neon-btn">
           Entrar
         </Button>
       </div>
