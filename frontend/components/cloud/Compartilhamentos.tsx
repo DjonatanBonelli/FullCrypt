@@ -30,8 +30,17 @@ export default function Compartilhamentos() {
 
   useEffect(() => {
     fetch("/api/shared", { credentials: "include" })
-      .then(res => res.json())
+      .then(async res => {
+        if (!res.ok) {
+          const error = await res.json().catch(() => ({ error: "Erro ao buscar compartilhamentos" }));
+          setStatus(error.error || "Erro ao buscar compartilhamentos");
+          return;
+        }
+        return res.json();
+      })
       .then(async data => {
+        if (!data) return;
+        
         const withLoading = data.map((c: any) => ({ ...c, verified: "loading" }));
         setCompartilhamentos(withLoading);
 
@@ -55,6 +64,10 @@ export default function Compartilhamentos() {
         );
 
         setCompartilhamentos(checked);
+      })
+      .catch(err => {
+        console.error("Erro ao buscar compartilhamentos:", err);
+        setStatus("Erro ao buscar compartilhamentos");
       });
   }, []);
 

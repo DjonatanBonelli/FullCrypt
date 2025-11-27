@@ -1,6 +1,6 @@
 use axum::{
     Router,
-    routing::{get, post},
+    routing::{delete, get, patch, post},
     middleware::from_fn_with_state,
 };
 use axum::extract::{State, Extension, Multipart};
@@ -26,7 +26,7 @@ async fn main() {
     // CORS Layer 
     let cors = CorsLayer::new()
         .allow_origin("http://localhost:3000".parse::<HeaderValue>().unwrap()) // origem do Next
-        .allow_methods([Method::GET, Method::POST, Method::OPTIONS])
+        .allow_methods([Method::GET, Method::POST, Method::PATCH, Method::DELETE, Method::OPTIONS])
         .allow_headers([
             http::header::CONTENT_TYPE,
             http::header::AUTHORIZATION,
@@ -37,12 +37,22 @@ async fn main() {
     // Rotas públicas (sem autenticação)
     let public_routes = Router::new()
         .route("/api/register", post(routes::auth::register::register))
-        .route("/api/login", post(routes::auth::login::login));
+        .route("/api/login", post(routes::auth::login::login))
+        .route("/api/auth/logout", post(routes::auth::logout::logout));
 
     // Rotas privadas (com autenticação JWT)
     let private_routes = Router::new()
+        .route("/api/auth/me", get(routes::auth::me::me))
         .route("/api/upload", post(routes::cloud::upload::upload))
         .route("/api/archives", get(routes::cloud::archives::archives))
+        .route(
+            "/api/archives/:file_id",
+            delete(routes::cloud::delete::delete_file),
+        )
+        .route(
+            "/api/archives/:file_id",
+            patch(routes::cloud::rename::rename_file),
+        )
         .route(
             "/api/download/:file_id",
             get(routes::download_file::download::download),
@@ -64,7 +74,7 @@ async fn main() {
     let app = public_routes
         .merge(private_routes)
         .with_state(pool.clone())
-        .layer(cors); // ✅ adicionado aqui
+        .layer(cors); 
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3001));
     println!("🚀 Backend rodando em http://{}", addr);

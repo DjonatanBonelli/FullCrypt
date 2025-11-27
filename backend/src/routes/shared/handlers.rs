@@ -1,5 +1,5 @@
 use axum::{
-    extract::{Path, State},
+    extract::{Extension, Path, State},
     Json,
     http::StatusCode,
     response::IntoResponse,
@@ -9,35 +9,47 @@ use std::sync::Arc;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine as _;
 use serde::Deserialize;
-use crate::routes::auth::auth_user::AuthUser;
+use crate::middleware::jwt::AuthUser;
 use crate::routes::shared::models::Compartilhamento;
 
 #[derive(Deserialize)]
 pub struct ShareRequest {
     pub email: String,
-    pub enveloped_key: String, // agora é String
+    pub enveloped_key: String, 
 }
 
 pub async fn listar(
     State(pool): State<Arc<Pool>>,
-    AuthUser(user_id): AuthUser,
-) -> Result<Json<Vec<Compartilhamento>>, StatusCode> {
-    let client = pool.get().await.map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    Extension(auth_user): Extension<AuthUser>,
+) -> Result<Json<Vec<Compartilhamento>>, (StatusCode, Json<serde_json::Value>)> {
+    let client = pool.get().await.map_err(|err| {
+        eprintln!("Erro ao pegar conexão para listar compartilhamentos: {:?}", err);
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({ "error": "Erro no banco" })),
+        )
+    })?;
 
     let rows = client
         .query(
             "
-            SELECT c.id, c.arquivo_id, a.nome_arquivo, c.sender_id, u1.nome as sender_nome, u1.email AS sender_email, u2.email AS receiver_email, c.receiver_id, c.chave_encrypted, c.signature, c.status, c.criado_em
+            SELECT c.id, c.arquivo_id, a.nome_arquivo, c.sender_id, u1.nome as sender_nome, u1.email AS sender_email, u2.email AS receiver_email, c.receiver_id, c.chave_encrypted, c.assinatura, c.status, c.criado_em
             FROM compartilhamentos c
             JOIN arquivos a ON c.arquivo_id = a.id
             JOIN usuarios u1 ON c.sender_id = u1.id
             JOIN usuarios u2 ON c.receiver_id = u2.id 
             WHERE c.receiver_id = $1
             ",
-            &[&user_id],
+            &[&auth_user.user_id],
         )
         .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+        .map_err(|err| {
+            eprintln!("Erro ao buscar compartilhamentos: {:?}", err);
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({ "error": "Erro ao buscar compartilhamentos" })),
+            )
+        })?;
 
     let compartilhamentos: Vec<Compartilhamento> = rows.iter().map(|r| Compartilhamento {
         id: r.get("id"),
@@ -59,13 +71,13 @@ pub async fn listar(
 pub async fn aceitar(
     State(pool): State<Arc<Pool>>,
     Path(id): Path<i32>,
-    AuthUser(user_id): AuthUser,
+    Extension(auth_user): Extension<AuthUser>,
 ) -> Result<StatusCode, StatusCode> {
     let client = pool.get().await.map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
     let rows_updated = client
         .execute(
             "UPDATE compartilhamentos SET status='aceito' WHERE id=$1 AND receiver_id=$2",
-            &[&id, &user_id],
+            &[&id, &auth_user.user_id],
         )
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
@@ -80,13 +92,13 @@ pub async fn aceitar(
 pub async fn recusar(
     State(pool): State<Arc<Pool>>,
     Path(id): Path<i32>,
-    AuthUser(user_id): AuthUser,
+    Extension(auth_user): Extension<AuthUser>,
 ) -> Result<StatusCode, StatusCode> {
     let client = pool.get().await.map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
     let rows_updated = client
         .execute(
             "UPDATE compartilhamentos SET status='recusado' WHERE id=$1 AND receiver_id=$2",
-            &[&id, &user_id],
+            &[&id, &auth_user.user_id],
         )
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;

@@ -31,7 +31,7 @@ export default function CloudPage() {
           <>
             <FileUpload loadArquivos={loadArquivos} />
             <h2 className="text-2xl font-bold mt-6 mb-4">Arquivos</h2>
-            <FileList arquivos={arquivos} />
+            <FileList arquivos={arquivos} onRefresh={loadArquivos} />
           </>
         )}
 

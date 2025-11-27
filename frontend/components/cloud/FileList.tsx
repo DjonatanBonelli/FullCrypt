@@ -42,7 +42,12 @@ const formatFileSize = (bytes?: number): string => {
   return Math.round(bytes / Math.pow(k, i) * 100) / 100 + " " + sizes[i];
 };
 
-export default function FileList({ arquivos }: any) {
+type FileListProps = {
+  arquivos: any[];
+  onRefresh?: () => void;
+};
+
+export default function FileList({ arquivos, onRefresh }: FileListProps) {
   const [open, setOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<any>(null);
   const [userKey, setUserKey] = useState("");
@@ -96,11 +101,11 @@ export default function FileList({ arquivos }: any) {
                 <DownloadIcon />
                 <span>Baixar</span>
               </Button>
-              <Button
+            <Button
                 onClick={() => {
                   const newName = prompt("Digite o novo nome do arquivo:", a.nome || a.nome_arquivo);
                   if (newName) {
-                    renameHandler(a, newName, setStatus);
+                    renameHandler(a, newName, setStatus, onRefresh);
                   }
                 }}
                 className="gray-btn px-3 py-1.5 text-xs flex items-center gap-1.5"
@@ -111,7 +116,7 @@ export default function FileList({ arquivos }: any) {
               <Button
                 onClick={() => {
                   if (confirm(`Tem certeza que deseja excluir "${a.nome || a.nome_arquivo}"?`)) {
-                    deleteHandler(a, false, setStatus);
+                    deleteHandler(a, false, setStatus, onRefresh);
                   }
                 }}
                 className="gray-btn px-3 py-1.5 text-xs flex items-center gap-1.5 hover:bg-red-500/20 hover:border-red-500"
@@ -147,6 +152,8 @@ export default function FileList({ arquivos }: any) {
 
         {status && <p className="text-red-400 mt-2">{status}</p>}
       </Modal>
+
+      {!open && status && <p className="text-gray-300 text-sm mt-3">{status}</p>}
     </>
   );
 }

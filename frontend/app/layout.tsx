@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/providers/ThemeProvider";
+import { AuthProvider } from "@/providers/AuthProvider";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -34,13 +35,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         ].join(" ")}
       >
        <ThemeProvider>
-        <div className="min-h-screen w-full flex flex-col">
-          <Header />
-          <main className="flex-1 w-full px-6 py-6">
-            {children}
-          </main>
-          <Footer />
-        </div>
+        <AuthProvider>
+          <div className="min-h-screen w-full flex flex-col">
+            <Header />
+            <main className="flex-1 w-full px-6 py-6">
+              {children}
+            </main>
+            <Footer />
+          </div>
+        </AuthProvider>
       </ThemeProvider>
       </body>
     </html>

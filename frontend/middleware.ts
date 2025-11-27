@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import * as jose from "jose"; // ← use 'jose' em vez de 'jsonwebtoken'
+import * as jose from "jose"; 
 
 const JWT_SECRET = process.env.JWT_SECRET || "segredo_super";
 
@@ -28,14 +28,22 @@ export async function middleware(req: NextRequest) {
   }
 
   try {
- 
     const secret = new TextEncoder().encode(JWT_SECRET);
-    await jose.jwtVerify(token, secret);
+    
+    // jwtVerify valida expiração automaticamente
+    await jose.jwtVerify(token, secret, {
+      clockTolerance: 0, // Não permite margem de tempo para tokens expirados
+    });
 
     // Se passou, segue
     return NextResponse.next();
   } catch (err) {
-    console.error("Token inválido:", err);
+    // jose.jwtVerify já lança erro para tokens expirados, mas vamos logar especificamente
+    if (err instanceof jose.errors.JWTExpired || (err as any).code === 'ERR_JWT_EXPIRED') {
+      console.error("Token expirado:", err);
+    } else {
+      console.error("Token inválido:", err);
+    }
     return NextResponse.redirect(new URL("/login", req.url));
   }
 }
