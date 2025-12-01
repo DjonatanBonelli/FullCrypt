@@ -64,6 +64,7 @@ async fn main() {
         .route("/api/shared/:id/aceitar", post(shared_handlers::aceitar))
         .route("/api/shared/:id/recusar", post(shared_handlers::recusar))
         .route("/api/share", post(routes::shared::share::compartilhar))
+        .route("/api/share/stored", post(routes::shared::share_stored::compartilhar_armazenado))
         .route("/api/users/kyberpk", get(routes::users::get_kyber_pk::get_kyber_pk))
         .route("/api/users/dilithiumpk", get(routes::users::get_dilithium_pk::get_dilithium_pk))
         .layer(from_fn_with_state(pool.clone(), require_auth));

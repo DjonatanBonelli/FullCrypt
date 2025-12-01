@@ -11,16 +11,17 @@ type ShareModalProps = {
 export default function ShareModal({ isOpen, onClose, setStatus }: ShareModalProps) {
   const [file, setFile] = useState<File | null>(null);
   const [recipient, setRecipient] = useState("");
-  const [secretKey, setSecretKey] = useState("");
+  const [secretKey, setSecretKey] = useState(""); // SK Dilithium
+  const [aesKey, setAesKey] = useState(""); // Chave simétrica AES
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file || !recipient) return;
+    if (!file || !recipient || !aesKey) return;
 
     // chama o handler centralizado
-    await handleShare(file, recipient, secretKey, setStatus);
+    await handleShare(file, recipient, secretKey, aesKey, setStatus);
     onClose();
   };
 
@@ -44,10 +45,18 @@ export default function ShareModal({ isOpen, onClose, setStatus }: ShareModalPro
             style={inputStyle}
           />
           <input
-            type="text"
-            placeholder="Sua SK Dilithium"
+            type="password"
+            placeholder="Sua SK Dilithium (base64)"
             value={secretKey}
             onChange={(e) => setSecretKey(e.target.value)}
+            required
+            style={inputStyle}
+          />
+          <input
+            type="password"
+            placeholder="Chave simétrica AES (base64)"
+            value={aesKey}
+            onChange={(e) => setAesKey(e.target.value)}
             required
             style={inputStyle}
           />

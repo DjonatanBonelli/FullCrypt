@@ -2,3 +2,4 @@
 pub mod handlers;
 pub mod models;
 pub mod share;
+pub mod share_stored;
