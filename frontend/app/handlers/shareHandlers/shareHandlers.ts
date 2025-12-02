@@ -1,17 +1,59 @@
 import { signWithDilithium } from "@/app/crypto/dilithium";
 import { fetchDilithiumPublicKey, fetchKyberPublicKey } from "../../cloud/handlers/userHandlers";
-import { encryptBytesWithHpke, b64uEncode, b64uDecode } from "../../crypto/hpke-kem";
-import { importKey, encryptData } from "../../crypto/AES-GCM";
+import { b64uEncode, b64uDecode } from "../../crypto/base64";
+import { importKey, encryptData, generateKey } from "../../crypto/AES-GCM";
+import { getDilithiumKeys, getAESKey } from "../../crypto/keyManager";
+import { Kyber } from "../../crypto/kyber";
+
+/**
+ * Encapsula a chave AES usando Kyber puro
+ * Retorna o ciphertext do Kyber e a chave AES criptografada com o shared secret
+ */
+async function encapsulateAESKeyWithKyber(
+  recipientPublicKey: Uint8Array,
+  aesKeyBytes: Uint8Array
+): Promise<{ kyberCiphertext: Uint8Array; encryptedAESKey: ArrayBuffer; nonce: Uint8Array }> {
+  const kyber = new Kyber();
+  
+  // 1. Encapsular usando a chave pública do destinatário (gera shared secret)
+  const { ciphertext: kyberCiphertext, sharedSecret } = await kyber.encryptSharedKey(recipientPublicKey);
+  
+  // 2. Usar o shared secret para criptografar a chave AES
+  // O shared secret do Kyber tem 32 bytes, perfeito para AES-256
+  const sharedSecretKey = await crypto.subtle.importKey(
+    "raw",
+    sharedSecret,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt"]
+  );
+  
+  // 3. Gerar nonce para criptografar a chave AES
+  const nonce = crypto.getRandomValues(new Uint8Array(12));
+  
+  // 4. Criptografar a chave AES com o shared secret
+  const encryptedAESKey = await encryptData(aesKeyBytes.buffer, sharedSecretKey, nonce);
+  
+  return {
+    kyberCiphertext,
+    encryptedAESKey,
+    nonce,
+  };
+}
 
 export const handleShare = async (
   file: File,
   targetEmail: string,
-  sk_dilithium: string,
-  aesKeyBase64: string, // Chave simétrica AES em base64
   setStatus: (msg: string) => void
 ) => {
   try {
-    setStatus("🔑 Buscando-chave pública...");
+    setStatus("🔑 Buscando chaves...");
+
+    // Busca chaves do gerenciador
+    const dilithiumKeys = await getDilithiumKeys();
+    if (!dilithiumKeys || !dilithiumKeys.private) {
+      throw new Error("Chave privada Dilithium não encontrada no gerenciador");
+    }
 
     const pk_kyber = await fetchKyberPublicKey(targetEmail);
     if (!pk_kyber) throw new Error("Chave Kyber do usuário não encontrada");
@@ -19,39 +61,40 @@ export const handleShare = async (
     const pk_dilithium = await fetchDilithiumPublicKey(targetEmail);
     if (!pk_dilithium) throw new Error("Chave Dilithium do usuário não encontrada");
 
-    // 1. Importar chave AES fornecida pelo usuário
+    // 1. Gerar chave AES para o arquivo
     setStatus("🔐 Criptografando arquivo...");
     const fileBytes = new Uint8Array(await file.arrayBuffer());
-    const aesKey = await importKey(aesKeyBase64);
-    const nonce = crypto.getRandomValues(new Uint8Array(12));
-    const encryptedFile = await encryptData(fileBytes, aesKey, nonce);
+    const aesKey = await generateKey();
+    const fileNonce = crypto.getRandomValues(new Uint8Array(12));
+    const encryptedFile = await encryptData(fileBytes, aesKey, fileNonce);
 
     // 2. Exportar chave AES em formato raw
     const rawKey = await crypto.subtle.exportKey("raw", aesKey);
     const keyBytes = new Uint8Array(rawKey);
 
-    // 3. Criptografar a chave AES com HPKE
-    setStatus("🔑 Criptografando chave...");
-    const { enc, ciphertext } = await encryptBytesWithHpke(pk_kyber, keyBytes);
-    const encBytes = b64uDecode(enc); // converter para bytes para assinar
+    // 3. Encapsular a chave AES com Kyber puro
+    setStatus("🔑 Encapsulando chave com Kyber...");
+    const { kyberCiphertext, encryptedAESKey, nonce: keyNonce } = 
+      await encapsulateAESKeyWithKyber(pk_kyber, keyBytes);
 
-    // 4. Codificar enc + ciphertext em JSON para armazenar no backend
+    // 4. Codificar dados da chave em JSON para armazenar no backend
     const keyData = {
-      enc: enc, // base64url
-      ciphertext: b64uEncode(new Uint8Array(ciphertext)), // base64url
+      kyberCiphertext: b64uEncode(kyberCiphertext), // base64url
+      encryptedAESKey: b64uEncode(new Uint8Array(encryptedAESKey)), // base64url
+      nonce: b64uEncode(keyNonce), // base64url
     };
     const keyDataJson = JSON.stringify(keyData);
 
-    // 5. Assinar a chave criptografada (enc) com Dilithium
+    // 5. Assinar o ciphertext do Kyber com Dilithium
     setStatus("✍️ Assinando...");
-    const skBytes = new Uint8Array(Buffer.from(sk_dilithium, "base64"));
-    const signature = await signWithDilithium(encBytes, skBytes, 2);
+    const skBytes = new Uint8Array(Buffer.from(dilithiumKeys.private, "base64"));
+    const signature = await signWithDilithium(kyberCiphertext, skBytes, 2);
 
     // 6. Preparar FormData
     const formData = new FormData();
     formData.append("file", new Blob([encryptedFile]), file.name);
     formData.append("nome_arquivo", file.name);
-    formData.append("nonce_file", b64uEncode(nonce));
+    formData.append("nonce_file", b64uEncode(fileNonce));
     formData.append("email", targetEmail);
     formData.append("chave_encrypted", keyDataJson);
     formData.append("signature", Buffer.from(signature).toString("base64"));
@@ -70,7 +113,7 @@ export const handleShare = async (
     }
   } catch (err) {
     console.error(err);
-    setStatus("❌ Erro ao compartilhar");
+    setStatus(`❌ Erro: ${err instanceof Error ? err.message : "Erro ao compartilhar"}`);
   }
 };
 
@@ -79,39 +122,49 @@ export const handleShareStoredFile = async (
   fileId: number,
   fileName: string,
   targetEmail: string,
-  sk_dilithium: string,
-  aesKeyBase64: string,
   setStatus: (msg: string) => void
 ) => {
   try {
-    setStatus("🔑 Buscando-chave pública...");
+    setStatus("🔑 Buscando chaves...");
+
+    // Busca chaves do gerenciador
+    const dilithiumKeys = await getDilithiumKeys();
+    if (!dilithiumKeys || !dilithiumKeys.private) {
+      throw new Error("Chave privada Dilithium não encontrada no gerenciador");
+    }
+
+    const aesKeyBase64 = await getAESKey(fileId.toString());
+    if (!aesKeyBase64) {
+      throw new Error("Chave AES do arquivo não encontrada no gerenciador");
+    }
 
     const pk_kyber = await fetchKyberPublicKey(targetEmail);
     if (!pk_kyber) throw new Error("Chave Kyber do usuário não encontrada");
 
-    // 1. Importar chave AES fornecida pelo usuário
+    // 1. Importar chave AES do gerenciador
     const aesKey = await importKey(aesKeyBase64);
     
     // 2. Exportar chave AES em formato raw
     const rawKey = await crypto.subtle.exportKey("raw", aesKey);
     const keyBytes = new Uint8Array(rawKey);
 
-    // 3. Criptografar a chave AES com HPKE
-    setStatus("🔑 Criptografando chave...");
-    const { enc, ciphertext } = await encryptBytesWithHpke(pk_kyber, keyBytes);
-    const encBytes = b64uDecode(enc);
+    // 3. Encapsular a chave AES com Kyber puro
+    setStatus("🔑 Encapsulando chave com Kyber...");
+    const { kyberCiphertext, encryptedAESKey, nonce: keyNonce } = 
+      await encapsulateAESKeyWithKyber(pk_kyber, keyBytes);
 
-    // 4. Codificar enc + ciphertext em JSON
+    // 4. Codificar dados da chave em JSON
     const keyData = {
-      enc: enc,
-      ciphertext: b64uEncode(new Uint8Array(ciphertext)),
+      kyberCiphertext: b64uEncode(kyberCiphertext),
+      encryptedAESKey: b64uEncode(new Uint8Array(encryptedAESKey)),
+      nonce: b64uEncode(keyNonce),
     };
     const keyDataJson = JSON.stringify(keyData);
 
-    // 5. Assinar a chave criptografada com Dilithium
+    // 5. Assinar o ciphertext do Kyber com Dilithium
     setStatus("✍️ Assinando...");
-    const skBytes = new Uint8Array(Buffer.from(sk_dilithium, "base64"));
-    const signature = await signWithDilithium(encBytes, skBytes, 2);
+    const skBytes = new Uint8Array(Buffer.from(dilithiumKeys.private, "base64"));
+    const signature = await signWithDilithium(kyberCiphertext, skBytes, 2);
 
     // 6. Enviar para backend (o arquivo já está no servidor, só criar compartilhamento)
     setStatus("📤 Criando compartilhamento...");
@@ -135,6 +188,6 @@ export const handleShareStoredFile = async (
     }
   } catch (err) {
     console.error(err);
-    setStatus("❌ Erro ao compartilhar");
+    setStatus(`❌ Erro: ${err instanceof Error ? err.message : "Erro ao compartilhar"}`);
   }
 };

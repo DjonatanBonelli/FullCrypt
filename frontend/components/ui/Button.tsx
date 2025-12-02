@@ -5,13 +5,15 @@ type Props = {
   children: React.ReactNode;
   onClick?: () => void;
   className?: string;
+  type?: "button" | "submit" | "reset";
 };
 
-export default function Button({ children, onClick, className }: Props) {
+export default function Button({ children, onClick, className, type = "button" }: Props) {
   const { theme } = useTheme();
 
   return (
     <button
+      type={type}
       className={`rounded-md px-6 py-1.5 ${className || ""}`}
       onClick={onClick}
       style={{

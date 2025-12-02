@@ -19,20 +19,20 @@ export default function ShareStoredFileModal({
   setStatus,
 }: ShareStoredFileModalProps) {
   const [recipient, setRecipient] = useState("");
-  const [secretKey, setSecretKey] = useState(""); // SK Dilithium
-  const [aesKey, setAesKey] = useState(""); // Chave simétrica AES
+  // Removidos - agora vêm do gerenciador de chaves
+  // const [secretKey, setSecretKey] = useState(""); // SK Dilithium
+  // const [aesKey, setAesKey] = useState(""); // Chave simétrica AES
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!recipient || !aesKey) return;
+    if (!recipient) return;
 
-    await handleShareStoredFile(fileId, fileName, recipient, secretKey, aesKey, setStatus);
+    // As chaves agora são obtidas automaticamente pelo handler
+    await handleShareStoredFile(fileId, fileName, recipient, setStatus);
     // Limpar campos
     setRecipient("");
-    setSecretKey("");
-    setAesKey("");
     onClose();
   };
 
@@ -54,6 +54,7 @@ export default function ShareStoredFileModal({
               className="w-full neon-input"
             />
           </div>
+          {/* Removidos - chaves vêm do gerenciador
           <div>
             <input
               type="password"
@@ -73,6 +74,7 @@ export default function ShareStoredFileModal({
               className="w-full neon-input"
             />
           </div>
+          */}
           <div className="flex gap-2 mt-6">
             <Button onClick={onClose} className="gray-btn flex-1">
               Cancelar

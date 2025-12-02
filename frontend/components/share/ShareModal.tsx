@@ -11,17 +11,18 @@ type ShareModalProps = {
 export default function ShareModal({ isOpen, onClose, setStatus }: ShareModalProps) {
   const [file, setFile] = useState<File | null>(null);
   const [recipient, setRecipient] = useState("");
-  const [secretKey, setSecretKey] = useState(""); // SK Dilithium
-  const [aesKey, setAesKey] = useState(""); // Chave simétrica AES
+  // Removidos - agora vêm do gerenciador de chaves
+  // const [secretKey, setSecretKey] = useState(""); // SK Dilithium
+  // const [aesKey, setAesKey] = useState(""); // Chave simétrica AES
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file || !recipient || !aesKey) return;
+    if (!file || !recipient) return;
 
-    // chama o handler centralizado
-    await handleShare(file, recipient, secretKey, aesKey, setStatus);
+    // chama o handler centralizado (chaves obtidas automaticamente)
+    await handleShare(file, recipient, setStatus);
     onClose();
   };
 
@@ -44,6 +45,7 @@ export default function ShareModal({ isOpen, onClose, setStatus }: ShareModalPro
             required
             style={inputStyle}
           />
+          {/* Removidos - chaves vêm do gerenciador
           <input
             type="password"
             placeholder="Sua SK Dilithium (base64)"
@@ -60,6 +62,7 @@ export default function ShareModal({ isOpen, onClose, setStatus }: ShareModalPro
             required
             style={inputStyle}
           />
+          */}
           <div style={{ display: "flex", gap: "8px", marginTop: 10 }}>
             <button type="submit" style={buttonPrimary}>Enviar</button>
             <button type="button" style={buttonSecondary} onClick={onClose}>Cancelar</button>

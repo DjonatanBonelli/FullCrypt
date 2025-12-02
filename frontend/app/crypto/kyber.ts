@@ -1,64 +1,44 @@
-// app/crypto/kyber.js
-import { MlKem768 } from "@hpke/ml-kem";
+// kyber.ts
+import { MlKem1024 } from "mlkem";
 
-const kem = new MlKem768();
+export class Kyber {
+  private impl: MlKem1024;
 
-/**
- * Inicializa a lib (carrega crypto nativo)
- */
-async function setup() {
-  if (!kem._api) {
-    await kem['_setup']();
+  constructor() {
+    this.impl = new MlKem1024();
+  }
+
+  async generateKeyPair() {
+    const [publicKey, secretKey] = await this.impl.generateKeyPair();
+    return { publicKey, secretKey };
+  }
+
+  async encryptSharedKey(publicKey: Uint8Array) {
+    // encapsula e gera CT + SS
+    const [ciphertext, sharedSecret] = await this.impl.encap(publicKey);
+    return { ciphertext, sharedSecret };
+  }
+
+  async decryptSharedKey(ciphertext: Uint8Array, secretKey: Uint8Array) {
+    const sharedSecret = await this.impl.decap(ciphertext, secretKey);
+    return sharedSecret;
   }
 }
 
-/**
- * Gera par de chaves Kyber puro (Uint8Array)
- * @returns {Promise<{publicKey: Uint8Array, privateKey: Uint8Array}>}
- */
-export async function generateKeyPair() {
-  await setup();
-  const [publicKey, privateKey] = await kem._prim.generateKeyPair();
-  return { publicKey, privateKey };
+// exemplo de uso
+export async function example() {
+  const receiver = new Kyber();
+  const sender = new Kyber();
+
+  const { publicKey, secretKey } = await receiver.generateKeyPair();
+  const { ciphertext, sharedSecret: ssSender } =
+    await sender.encryptSharedKey(publicKey);
+
+  const ssReceiver = await receiver.decryptSharedKey(ciphertext, secretKey);
+
+  return {
+    ssSender,
+    ssReceiver,
+    equal: Buffer.compare(ssSender, ssReceiver) === 0,
+  };
 }
-
-/**
- * Encapsula uma chave simétrica para o destinatário
- * @param {Uint8Array} recipientPublicKey 
- * @returns {Promise<{ciphertext: Uint8Array, sharedSecret: Uint8Array}>}
- */
-export async function encapsulateKey(recipientPublicKey) {
-  await setup();
-  const [ciphertext, sharedSecret] = await kem._prim.encap(recipientPublicKey);
-  return { ciphertext, sharedSecret };
-}
-
-/**
- * Decapsula uma chave simétrica recebida
- * @param {Uint8Array} ciphertext 
- * @param {Uint8Array} privateKey 
- * @returns {Promise<Uint8Array>} sharedSecret
- */
-export async function decapsulateKey(ciphertext, privateKey) {
-  await setup();
-  const sharedSecret = await kem._prim.decap(ciphertext, privateKey);
-  return sharedSecret;
-}
-
-/**
- * Teste rápido
- */
-async function test() {
-  const { publicKey, privateKey } = await generateKeyPair();
-  console.log("🔑 Public key:", publicKey.byteLength, "bytes");
-  console.log("🔒 Private key:", privateKey.byteLength, "bytes");
-
-  const { ciphertext, sharedSecret } = await encapsulateKey(publicKey);
-  const recovered = await decapsulateKey(ciphertext, privateKey);
-
-  console.log("✅ Match:", Buffer.from(sharedSecret).equals(Buffer.from(recovered)));
-
-}
-
-// Descomente para testar diretamente:
-test();

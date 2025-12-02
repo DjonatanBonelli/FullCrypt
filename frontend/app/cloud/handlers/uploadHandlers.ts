@@ -1,4 +1,6 @@
+// frontend/app/cloud/handlers/uploadHandlers.ts
 import { encryptData, generateKey } from "../../crypto/AES-GCM";
+import { setAESKey } from "../../crypto/keyManager";
 
 export const handleUpload = async (file: File, setStatus: any, loadArquivos: any) => {
   const arrayBuffer = await file.arrayBuffer();
@@ -14,16 +16,20 @@ export const handleUpload = async (file: File, setStatus: any, loadArquivos: any
   const res = await fetch("/api/upload", { method: "POST", body: formData, credentials: "include" });
 
   if (res.ok) {
-    setStatus("Arquivo criptografado e enviado!");
+    const data = await res.json();
+    const fileId = data.id; 
+    
+    // Salva a chave AES no keystore
     const rawKey = await crypto.subtle.exportKey("raw", key);
     const dekBase64 = btoa(String.fromCharCode(...new Uint8Array(rawKey)));
-    const blob = new Blob([dekBase64], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${file.name}-key.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+    
+    try {
+      await setAESKey(fileId, dekBase64);
+      setStatus("Arquivo criptografado, enviado e chave salva!");
+    } catch (error) {
+      setStatus("Arquivo enviado, mas erro ao salvar chave no keystore");
+    }
+    
     loadArquivos();
   } else {
     setStatus("Erro no upload");

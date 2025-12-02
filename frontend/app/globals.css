@@ -165,3 +165,84 @@ body {
   border-color: rgba(140, 90, 255, 0.8);
   color: #ddd;
 }
+
+/* ---------------------------- */
+/*      AUTH FORM STYLES        */
+/* ---------------------------- */
+
+/* Animação suave para transição entre modos */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.auth-form-container {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Estilo para labels dos inputs */
+label {
+  transition: color 0.2s;
+}
+
+label:hover {
+  color: rgba(180, 120, 255, 0.8);
+}
+
+/* Melhorias no botão de submit */
+button[type="submit"].neon-btn {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+button[type="submit"].neon-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Estilo para mensagens de status */
+.status-message {
+  animation: fadeIn 0.3s ease-in-out;
+  word-wrap: break-word;
+}
+
+/* Melhorias nos tabs */
+.auth-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 4px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+}
+
+.auth-tab:hover {
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.auth-tab.active {
+  background: color-mix(in srgb, rgb(165, 80, 255) 20%, transparent);
+  color: #fff;
+  box-shadow:
+    0 0 4px rgb(165, 80, 255),
+    inset 0 0 0.5px rgb(165, 80, 255);
+}

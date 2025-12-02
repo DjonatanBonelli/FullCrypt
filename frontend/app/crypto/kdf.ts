@@ -1,44 +1,38 @@
-// kyber.ts
-import { MlKem1024 } from "mlkem";
-
-export class Kyber {
-  private impl: MlKem1024;
-
-  constructor() {
-    this.impl = new MlKem1024();
+/**
+ * Deriva uma chave AES-256 de uma senha usando PBKDF2
+ * @param password - Senha do usuário
+ * @returns CryptoKey para uso com AES-GCM
+ */
+export async function deriveKeyFromPassword(password: string): Promise<CryptoKey> {
+    // Converte a senha para Uint8Array
+    const encoder = new TextEncoder();
+    const passwordData = encoder.encode(password);
+  
+    // Importa a senha como chave para PBKDF2
+    const keyMaterial = await crypto.subtle.importKey(
+      "raw",
+      passwordData,
+      "PBKDF2",
+      false,
+      ["deriveBits", "deriveKey"]
+    );
+  
+    // Deriva a chave usando PBKDF2 (sem salt, como solicitado)
+    // NOTA: Sem salt é menos seguro, mas conforme solicitado
+    const emptySalt = new Uint8Array(0);
+    
+    const derivedKey = await crypto.subtle.deriveKey(
+      {
+        name: "PBKDF2",
+        salt: emptySalt,
+        iterations: 100000, // Número de iterações para segurança
+        hash: "SHA-256",
+      },
+      keyMaterial,
+      { name: "AES-GCM", length: 256 },
+      true,
+      ["encrypt", "decrypt"]
+    );
+  
+    return derivedKey;
   }
-
-  async generateKeyPair() {
-    const [publicKey, secretKey] = await this.impl.generateKeyPair();
-    return { publicKey, secretKey };
-  }
-
-  async encryptSharedKey(publicKey: Uint8Array) {
-    // encapsula e gera CT + SS
-    const [ciphertext, sharedSecret] = await this.impl.encap(publicKey);
-    return { ciphertext, sharedSecret };
-  }
-
-  async decryptSharedKey(ciphertext: Uint8Array, secretKey: Uint8Array) {
-    const sharedSecret = await this.impl.decap(ciphertext, secretKey);
-    return sharedSecret;
-  }
-}
-
-// exemplo de uso
-export async function example() {
-  const receiver = new Kyber();
-  const sender = new Kyber();
-
-  const { publicKey, secretKey } = await receiver.generateKeyPair();
-  const { ciphertext, sharedSecret: ssSender } =
-    await sender.encryptSharedKey(publicKey);
-
-  const ssReceiver = await receiver.decryptSharedKey(ciphertext, secretKey);
-
-  return {
-    ssSender,
-    ssReceiver,
-    equal: Buffer.compare(ssSender, ssReceiver) === 0,
-  };
-}

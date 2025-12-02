@@ -22,7 +22,7 @@ pub async fn upload(
         Ok(c) => c,
         Err(e) => {
             eprintln!("❌ Erro ao pegar conexão do pool: {:?}", e);
-            return (StatusCode::INTERNAL_SERVER_ERROR, "Erro no banco");
+            return (StatusCode::INTERNAL_SERVER_ERROR, "Erro no banco".to_string());
         }
     };
 
@@ -38,7 +38,7 @@ pub async fn upload(
         Ok(f) => f,
         Err(e) => {
             eprintln!("❌ Erro ao ler multipart field: {:?}", e);
-            return (StatusCode::BAD_REQUEST, "Erro no multipart");
+            return (StatusCode::BAD_REQUEST, "Erro no multipart".to_string());
         }
     } {
         let name = field.name().unwrap_or("").to_string();
@@ -46,7 +46,7 @@ pub async fn upload(
             Ok(b) => b.to_vec(),
             Err(e) => {
                 eprintln!("❌ Erro ao ler bytes do field {}: {:?}", name, e);
-                return (StatusCode::BAD_REQUEST, "Erro ao ler campo");
+                return (StatusCode::BAD_REQUEST, "Erro ao ler campo".to_string());
             }
         };
 
@@ -57,7 +57,7 @@ pub async fn upload(
                 Ok(decoded) => nonce_file = Some(decoded),
                 Err(e) => {
                     eprintln!("❌ Erro ao decodificar nonce_file: {:?}", e);
-                    return (StatusCode::BAD_REQUEST, "Nonce inválido");
+                    return (StatusCode::BAD_REQUEST, "Nonce inválido".to_string());
                 }
             },
             _ => {}
@@ -72,7 +72,7 @@ pub async fn upload(
             conteudo.is_some(),
             nonce_file.is_some()
         );
-        return (StatusCode::BAD_REQUEST, "Campos ausentes");
+        return (StatusCode::BAD_REQUEST, "Campos ausentes".to_string());
     }
 
     // Prepara statement
@@ -80,7 +80,7 @@ pub async fn upload(
         Ok(s) => s,
         Err(e) => {
             eprintln!("❌ Erro ao preparar statement: {:?}", e);
-            return (StatusCode::INTERNAL_SERVER_ERROR, "Erro no prepare");
+            return (StatusCode::INTERNAL_SERVER_ERROR, "Erro no prepare".to_string());
         }
     };
 
@@ -100,11 +100,12 @@ pub async fn upload(
         Ok(row) => {
             let arquivo_id: i32 = row.get("id");
             eprintln!("✅ Arquivo inserido com id {}", arquivo_id);
-            (StatusCode::OK, "Arquivo salvo!")
+            // ⭐️ Alteração aqui: Retorna o ID do arquivo como String
+            (StatusCode::OK, arquivo_id.to_string())
         }
         Err(e) => {
             eprintln!("❌ Erro ao executar query: {:?}", e);
-            (StatusCode::INTERNAL_SERVER_ERROR, "Erro ao salvar no banco")
+            (StatusCode::INTERNAL_SERVER_ERROR, "Erro ao salvar no banco".to_string())
         }
     }
 }
