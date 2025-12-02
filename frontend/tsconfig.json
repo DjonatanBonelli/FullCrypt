@@ -25,6 +25,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/page.tsx", "app/crypto/kyber.js", "app/scripts/test-kyber.js", "app/crypto/hpke-kem.ts", "app/crypto/dilithium.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/page.tsx", "app/crypto/kyber.ts", "app/scripts/test-kyber.js", "app/crypto/hpke-kem.ts", "app/crypto/dilithium.ts"],
   "exclude": ["node_modules"]
 }

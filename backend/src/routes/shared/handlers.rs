@@ -33,7 +33,7 @@ pub async fn listar(
     let rows = client
         .query(
             "
-            SELECT c.id, c.arquivo_id, a.nome_arquivo, c.sender_id, u1.nome as sender_nome, u1.email AS sender_email, u2.email AS receiver_email, c.receiver_id, c.chave_encrypted, c.assinatura, c.status, c.criado_em
+            SELECT c.id, c.arquivo_id, a.nome_arquivo, c.sender_id, u1.nome as sender_nome, u1.email AS sender_email, u2.email AS receiver_email, c.receiver_id, c.chave_encrypted, c.signature, c.status, c.criado_em
             FROM compartilhamentos c
             JOIN arquivos a ON c.arquivo_id = a.id
             JOIN usuarios u1 ON c.sender_id = u1.id
