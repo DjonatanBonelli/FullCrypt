@@ -3,6 +3,7 @@ import { useState } from "react";
 import { handleDownload } from "../../app/cloud/handlers/downloadHandlers";
 import { renameHandler } from "@/app/cloud/handlers/renameHandler";
 import { deleteHandler } from "@/app/cloud/handlers/deleteHandler";
+import { getAESKey } from "../../app/crypto/keyManager";
 import Button from "../ui/Button";
 import { Modal } from "./modal/Modal";
 import ShareStoredFileModal from "./ShareStoredFileModal";
@@ -62,9 +63,26 @@ export default function FileList({ arquivos, onRefresh }: FileListProps) {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [fileToShare, setFileToShare] = useState<any>(null);
 
-  const pedirChave = (file: any) => {
-    setSelectedFile(file);
-    setOpen(true);
+  const handleDownloadClick = async (file: any) => {
+    try {
+      // Tenta obter a chave do IndexedDB primeiro
+      const keyFromDB = await getAESKey(file.id);
+      
+      if (keyFromDB) {
+        // Se encontrou a chave no IndexedDB, faz o download diretamente
+        await handleDownload(file, keyFromDB, setStatus);
+      } else {
+        console.log("Não encontrou a chave no IndexedDB, pedindo manualmente");
+        // Se não encontrou, abre o modal para pedir a chave
+        setSelectedFile(file);
+        setOpen(true);
+      }
+    } catch (error) {
+      // Se houver erro ao acessar o IndexedDB, abre o modal
+      console.error("Erro ao acessar IndexedDB:", error);
+      setSelectedFile(file);
+      setOpen(true);
+    }
   };
 
   const confirmar = () => {
@@ -104,7 +122,7 @@ export default function FileList({ arquivos, onRefresh }: FileListProps) {
             {/* Botões de ação */}
             <div className="flex items-center gap-2 flex-shrink-0">
               <Button
-                onClick={() => pedirChave(a)}
+                onClick={() => handleDownloadClick(a)}
                 className="gray-btn px-3 py-1.5 text-xs flex items-center gap-1.5"
               >
                 <DownloadIcon />

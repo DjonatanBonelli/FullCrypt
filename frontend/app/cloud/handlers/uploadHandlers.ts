@@ -17,7 +17,7 @@ export const handleUpload = async (file: File, setStatus: any, loadArquivos: any
 
   if (res.ok) {
     const data = await res.json();
-    const fileId = data.id; 
+    const fileId = data; 
     
     // Salva a chave AES no keystore
     const rawKey = await crypto.subtle.exportKey("raw", key);

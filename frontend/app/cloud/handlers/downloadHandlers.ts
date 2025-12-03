@@ -12,6 +12,7 @@ export const handleDownload = async (arq: any, userKey: string | null, setStatus
         keyBase64 = await getAESKey(arq.id);
         if (!keyBase64) {
           // Se não encontrou no keystore, pede manualmente
+          console.log("Não encontrou a chave no keystore, pedindo manualmente");
           keyBase64 = prompt("Informe a chave AES (base64) para descriptografar:");
           if (!keyBase64) return;
         }

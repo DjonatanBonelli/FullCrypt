@@ -237,6 +237,7 @@ export async function getKyberKeys(password?: string): Promise<{ public: string;
  */
 export async function getAESKey(fileId: string, password?: string): Promise<string | null> {
   const keyStore = await loadKeyStore(password);
+  console.log("Chave AES encontrada:", keyStore);
   return keyStore?.aesKeys[fileId] || null;
 }
 
