@@ -1,6 +1,6 @@
 // frontend/app/cloud/handlers/downloadHandlers.ts
-import { importKey, decryptData } from "../../crypto/AES-GCM";
-import { getAESKey } from "../../crypto/keyManager";
+import { importKey, decryptData } from "../crypto/AES-GCM";
+import { getAESKey } from "../keyStore/keyManager";
 
 export const handleDownload = async (arq: any, userKey: string | null, setStatus: any) => {
   try {
@@ -9,7 +9,7 @@ export const handleDownload = async (arq: any, userKey: string | null, setStatus
     // Tenta obter a chave do keystore primeiro
     if (!keyBase64) {
       try {
-        keyBase64 = await getAESKey(arq.id);
+ 
         if (!keyBase64) {
           // Se não encontrou no keystore, pede manualmente
           console.log("Não encontrou a chave no keystore, pedindo manualmente");

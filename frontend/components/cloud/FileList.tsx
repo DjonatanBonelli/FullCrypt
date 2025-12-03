@@ -1,12 +1,12 @@
 "use client";
 import { useState } from "react";
-import { handleDownload } from "../../app/cloud/handlers/downloadHandlers";
+import { handleDownload } from "../../app/handlers/downloadHandlers";
 import { renameHandler } from "@/app/cloud/handlers/renameHandler";
 import { deleteHandler } from "@/app/cloud/handlers/deleteHandler";
-import { getAESKey } from "../../app/crypto/keyManager";
+import { getAESKey } from "../../app/keyStore/keyManager";
 import Button from "../ui/Button";
 import { Modal } from "./modal/Modal";
-import ShareStoredFileModal from "./ShareStoredFileModal";
+import ShareModal from "../share/ShareModal";
 
 // Ícone de arquivo padrão
 const FileIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
@@ -191,7 +191,7 @@ export default function FileList({ arquivos, onRefresh }: FileListProps) {
       </Modal>
 
       {fileToShare && (
-        <ShareStoredFileModal
+        <ShareModal
           isOpen={shareModalOpen}
           onClose={() => {
             setShareModalOpen(false);

@@ -1,6 +1,6 @@
 // frontend/app/cloud/handlers/uploadHandlers.ts
 import { encryptData, generateKey } from "../../crypto/AES-GCM";
-import { setAESKey } from "../../crypto/keyManager";
+import { setAESKey } from "../../keyStore/keyManager";
 
 export const handleUpload = async (file: File, setStatus: any, loadArquivos: any) => {
   const arrayBuffer = await file.arrayBuffer();

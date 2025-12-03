@@ -1,5 +1,5 @@
-import { deriveKeyFromPassword } from "./kdf";
-import { encryptData, decryptData, generateKey } from "./AES-GCM";
+import { deriveKeyFromPassword } from "../crypto/kdf";
+import { encryptData, decryptData, generateKey } from "../crypto/AES-GCM";
 
 const DB_NAME = "FullCryptKeyStore";
 const DB_VERSION = 1;
@@ -128,6 +128,7 @@ export async function loadKeyStore(password?: string): Promise<KeyStore | null> 
 
     // Converte para JSON
     const jsonString = new TextDecoder().decode(decrypted);
+    console.log(jsonString)
     return JSON.parse(jsonString) as KeyStore;
   } catch (error) {
     console.error("Erro ao carregar keystore:", error);
@@ -229,6 +230,7 @@ export async function getDilithiumKeys(password?: string): Promise<{ public: str
  */
 export async function getKyberKeys(password?: string): Promise<{ public: string; private: string } | null> {
   const keyStore = await loadKeyStore(password);
+  console.log(keyStore);
   return keyStore?.kyber || null;
 }
 

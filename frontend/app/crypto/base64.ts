@@ -6,7 +6,6 @@ export function b64uEncode(buf: Uint8Array) {
       .replace(/\//g, "_")
       .replace(/=+$/, "");
   }
-  
   export function b64uDecode(s: string) {
     return Uint8Array.from(Buffer.from(s.replace(/-/g, "+").replace(/_/g, "/"), "base64"));
   }

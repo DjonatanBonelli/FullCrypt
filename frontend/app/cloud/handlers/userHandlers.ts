@@ -1,4 +1,4 @@
-import { b64uDecode } from "@/app/crypto/hpke-kem";
+import { b64uDecode } from "../../crypto/base64";
 
 export const fetchKyberPublicKey = async (email: string): Promise<Uint8Array | null> => {
   const res = await fetch(`/api/users/kyberpk?email=${encodeURIComponent(email)}`);

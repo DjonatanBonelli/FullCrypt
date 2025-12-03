@@ -1,16 +1,14 @@
 "use client";
 import { b64uEncode } from "../../crypto/base64";
-import { Kyber } from "../../crypto/kyber";
-import { initializeKeyStore, saveKeyStore, keyStoreExists } from "../../crypto/keyManager";
-import type { KeyStore } from "../../crypto/keyManager";
+import { generateHpkeKeyPair } from "../../crypto/hpke-kem";
+import { initializeKeyStore, saveKeyStore, keyStoreExists } from "../../keyStore/keyManager";
+import type { KeyStore } from "../../keyStore/keyManager";
 
 export const criarUsuario = async (nome: string, email: string, senha: string, setStatus?: (msg: string) => void) => {
   try {
     setStatus?.("🔑 Gerando chaves...");
 
-    // Gerar par de chaves Kyber usando kyber.ts
-    const kyber = new Kyber();
-    const { publicKey: kyberPub, secretKey: kyberPriv } = await kyber.generateKeyPair();
+    const { publicKey: kyberPub, privateKey: kyberPriv } = await generateHpkeKeyPair();
 
     const dil = await import("@/app/crypto/dilithium");
     const { publicKey: dPub, privateKey: dPriv } =
@@ -39,18 +37,10 @@ export const criarUsuario = async (nome: string, email: string, senha: string, s
     const dPubB64 = b64uEncode(dPub);
     const dPrivB64 = b64uEncode(dPriv);
     
-    console.log("raw keys");
-
     console.log("kyberPub", kyberPub);
     console.log("kyberPriv", kyberPriv);
     console.log("dPub", dPub);
     console.log("dPriv", dPriv);
-    console.log("base64 keys");
-
-    console.log("kyberPubB64", kyberPubB64);
-    console.log("kyberPrivB64", kyberPrivB64);
-    console.log("dPubB64", dPubB64);
-    console.log("dPrivB64", dPrivB64);
 
     try {
       // Verifica se o keystore já existe

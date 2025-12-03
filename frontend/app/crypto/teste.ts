@@ -1,4 +1,5 @@
-import { generateHpkeKeyPair, encryptBytesWithHpke, decryptBytesWithHpke, b64uEncode, b64uDecode } from "./hpke-kem.ts";
+import { generateHpkeKeyPair, encryptBytesWithHpke, decryptBytesWithHpke } from "./hpke-kem.ts";
+import { b64uEncode, b64uDecode } from "./base64";
 import { generateDilithiumKeyPair, signWithDilithium, verifyWithDilithium } from "./dilithium.ts";
 
 async function testHpke() {

@@ -1,125 +1,89 @@
 "use client";
 import { useState } from "react";
 import { handleShare } from "../../app/handlers/shareHandlers/shareHandlers";
+import Button from "../ui/Button";
 
 type ShareModalProps = {
   isOpen: boolean;
   onClose: () => void;
   setStatus: (msg: string) => void;
+
+  file?: File;           // para envio direto
+  fileId?: number;       // para arquivo armazenado
+  fileName?: string;     // nome do armazenado
 };
 
-export default function ShareModal({ isOpen, onClose, setStatus }: ShareModalProps) {
-  const [file, setFile] = useState<File | null>(null);
+export default function ShareModal({
+  isOpen,
+  onClose,
+  setStatus,
+  file,
+  fileId,
+  fileName,
+}: ShareModalProps) {
   const [recipient, setRecipient] = useState("");
-  // Removidos - agora vêm do gerenciador de chaves
-  // const [secretKey, setSecretKey] = useState(""); // SK Dilithium
-  // const [aesKey, setAesKey] = useState(""); // Chave simétrica AES
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file || !recipient) return;
 
-    // chama o handler centralizado (chaves obtidas automaticamente)
-    await handleShare(file, recipient, setStatus);
+    if (!recipient) return;
+
+    await handleShare(
+      fileId
+        ? { fileId, fileName }
+        : { file },
+      recipient,
+      setStatus
+    );
+
+    setRecipient("");
     onClose();
   };
 
   return (
-    <div style={overlayStyle}>
-      <div style={modalStyle}>
-        <h3 style={{ marginBottom: 10 }}>Compartilhar arquivo</h3>
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-          <input
-            type="text"
-            placeholder="Destinatário (email)"
-            value={recipient}
-            onChange={(e) => setRecipient(e.target.value)}
-            required
-            style={inputStyle}
-          />
-          <input
-            type="file"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-            required
-            style={inputStyle}
-          />
-          {/* Removidos - chaves vêm do gerenciador
-          <input
-            type="password"
-            placeholder="Sua SK Dilithium (base64)"
-            value={secretKey}
-            onChange={(e) => setSecretKey(e.target.value)}
-            required
-            style={inputStyle}
-          />
-          <input
-            type="password"
-            placeholder="Chave simétrica AES (base64)"
-            value={aesKey}
-            onChange={(e) => setAesKey(e.target.value)}
-            required
-            style={inputStyle}
-          />
-          */}
-          <div style={{ display: "flex", gap: "8px", marginTop: 10 }}>
-            <button type="submit" style={buttonPrimary}>Enviar</button>
-            <button type="button" style={buttonSecondary} onClick={onClose}>Cancelar</button>
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+      <div className="neon-box p-6 max-w-md w-full mx-4">
+        <h2 className="text-xl font-bold mb-4">Compartilhar arquivo</h2>
+
+        {fileId && fileName && (
+          <p className="text-gray-400 mb-4 text-sm">
+            Arquivo:{" "}
+            <span className="text-white font-medium">{fileName}</span>
+          </p>
+        )}
+
+        {!fileId && (
+          <p className="text-gray-300 mb-2 text-sm">
+            Arquivo selecionado:{" "}
+            <span className="text-white font-medium">{file?.name}</span>
+          </p>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <input
+              type="email"
+              placeholder="Destinatário (email)"
+              value={recipient}
+              onChange={(e) => setRecipient(e.target.value)}
+              required
+              className="w-full neon-input"
+            />
+          </div>
+
+          <div className="flex gap-2 mt-6">
+            <Button onClick={onClose} className="gray-btn flex-1">
+              Cancelar
+            </Button>
+
+            <Button type="submit" className="neon-btn flex-1">
+              Compartilhar
+            </Button>
           </div>
         </form>
       </div>
     </div>
   );
 }
-
-// ===== ESTILOS =====
-
-const overlayStyle: React.CSSProperties = {
-  position: "fixed",
-  top: 0,
-  left: 0,
-  width: "100vw",
-  height: "100vh",
-  backgroundColor: "rgba(0, 0, 0, 0.6)",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  zIndex: 1000,
-};
-
-const modalStyle: React.CSSProperties = {
-  backgroundColor: "#1e1e1e",       // escuro pro tema dark
-  color: "#f1f1f1",                 // texto claro
-  padding: "20px",
-  borderRadius: "8px",
-  width: "90%",
-  maxWidth: "400px",
-  boxShadow: "0 0 15px rgba(0,0,0,0.3)",
-};
-
-const inputStyle: React.CSSProperties = {
-  padding: "8px",
-  borderRadius: "4px",
-  border: "1px solid #444",
-  backgroundColor: "#2a2a2a",
-  color: "#f1f1f1",
-};
-
-const buttonPrimary: React.CSSProperties = {
-  backgroundColor: "#007bff",
-  color: "#fff",
-  border: "none",
-  padding: "8px 12px",
-  borderRadius: "4px",
-  cursor: "pointer",
-};
-
-const buttonSecondary: React.CSSProperties = {
-  backgroundColor: "#444",
-  color: "#fff",
-  border: "none",
-  padding: "8px 12px",
-  borderRadius: "4px",
-  cursor: "pointer",
-};

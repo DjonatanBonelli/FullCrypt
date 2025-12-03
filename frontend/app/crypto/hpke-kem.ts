@@ -1,18 +1,6 @@
 import { Aes256Gcm, CipherSuite, HkdfSha256 } from "@hpke/core";
 import { MlKem768 } from "@hpke/ml-kem";
-
-// === Encode / Decode base64url ===
-export function b64uEncode(buf: Uint8Array) {
-  return Buffer.from(buf)
-    .toString("base64")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
-}
-
-export function b64uDecode(s: string) {
-  return Uint8Array.from(Buffer.from(s.replace(/-/g, "+").replace(/_/g, "/"), "base64"));
-}
+import { b64uEncode } from "./base64";
 
 // === Criar CipherSuite ===
 async function makeSuite() {
@@ -27,9 +15,6 @@ async function makeSuite() {
 export async function generateHpkeKeyPair() {
   const suite = await makeSuite();
   const { privateKey, publicKey } = await suite.kem.generateKeyPair();
-
-  console.log("Private Key:", privateKey);
-  console.log("Public Key:", publicKey);
 
   // Pegamos apenas o Uint8Array interno
   return {
@@ -61,9 +46,6 @@ export async function decryptBytesWithHpke(
   enc: Uint8Array,            
   ciphertext: Uint8Array   
 ) {
-
-  //console.log(privBytes.length, enc.length, ciphertext.length);
-  //console.log(enc);
 
   const suite = await makeSuite();
   const sk = await suite.kem.importKey("raw", privBytes, false); 
