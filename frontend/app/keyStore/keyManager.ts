@@ -164,7 +164,9 @@ export async function loadKeyStore(password?: string): Promise<KeyStore | null> 
 
     // Descriptografa os dados
     const decrypted = await decryptData(
-      encryptedData.encrypted.buffer,
+      encryptedData.encrypted instanceof ArrayBuffer
+        ? encryptedData.encrypted
+        : new Uint8Array(encryptedData.encrypted).buffer,
       key,
       encryptedData.iv
     );

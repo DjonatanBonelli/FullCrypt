@@ -84,7 +84,7 @@ async fn main() {
         .with_state(pool.clone())
         .layer(cors); 
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3001));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 3001));
     println!("🚀 Backend rodando em http://{}", addr);
 
     axum::serve(tokio::net::TcpListener::bind(addr).await.unwrap(), app)

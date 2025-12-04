@@ -66,7 +66,7 @@ export const handleShare = async (
 
     const keyDataJson = JSON.stringify({
       hpke_enc: enc,
-      hpke_ciphertext: b64uEncode(encryptedAESKey),
+      hpke_ciphertext: b64uEncode(new Uint8Array(encryptedAESKey)),
     });
 
     // === 4. Assinar enc
@@ -76,7 +76,7 @@ export const handleShare = async (
 
     // === 5A. Se for arquivo novo → criptografar agora e enviar com FormData
     if (!isStored) {
-      const encryptedFile = await encryptData(fileBytes!, aesKey, fileNonce);
+      const encryptedFile = await encryptData(fileBytes!.buffer as ArrayBuffer, aesKey, fileNonce);
 
       const formData = new FormData();
       formData.append("file", new Blob([encryptedFile]), file!.name);

@@ -1,10 +1,9 @@
-FROM rust:1.82 as builder
+FROM rust:1.88-slim AS builder
 WORKDIR /app
 COPY . .
 RUN cargo build --release
 
-FROM debian:bookworm-slim
+FROM rust:1.88-slim 
 WORKDIR /app
-COPY --from=builder /app/target/release/backend-rust /app/backend
-EXPOSE 8000
-CMD ["/app/backend"]
+EXPOSE 3001
+CMD ["cargo", "run"]  

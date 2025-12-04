@@ -18,26 +18,34 @@ export async function generateHpkeKeyPair() {
 
   // Pegamos apenas o Uint8Array interno
   return {
-    privateKey: Array.from(privateKey.key),
-    publicKey: Array.from(publicKey.key),
+    privateKey: privateKey.key,
+    publicKey: publicKey.key,
   };
 }
 
 // === Criptografa bytes com chave pública (raw bytes) ===
 export async function encryptBytesWithHpke(pubBytes: Uint8Array, plaintext: Uint8Array) {
   const suite = await makeSuite();
-  const pk = await suite.kem.importKey("raw", pubBytes, true); // public key raw
+  // Convert Uint8Array to ArrayBuffer, ensuring not to use SharedArrayBuffer
+  const pubKeyBuf = pubBytes instanceof Uint8Array
+    ? pubBytes.buffer.slice(pubBytes.byteOffset, pubBytes.byteOffset + pubBytes.byteLength)
+    : pubBytes;
+  const pk = await suite.kem.importKey("raw", pubKeyBuf as ArrayBuffer, true);
   const sender = await suite.createSenderContext({ recipientPublicKey: pk });
 
-  const ciphertext = await sender.seal(plaintext);
+  const ptBuf = plaintext instanceof Uint8Array
+    ? plaintext.buffer.slice(plaintext.byteOffset, plaintext.byteOffset + plaintext.byteLength)
+    : plaintext;
+  const ciphertext = await sender.seal(ptBuf as ArrayBuffer);
   const enc = sender.enc;
 
   return {
-    enc: b64uEncode(enc),
+    enc: b64uEncode(new Uint8Array(enc)),
     ciphertext: ciphertext,
     aead: "Aes256Gcm",
     kem: "MlKem768",
   };
+
 }
 
 // === Descriptografa bytes com chave privada (raw bytes) ===
@@ -48,14 +56,28 @@ export async function decryptBytesWithHpke(
 ) {
 
   const suite = await makeSuite();
-  const sk = await suite.kem.importKey("raw", privBytes, false); 
+  // Convert privBytes to ArrayBuffer before passing to importKey
+  const privKeyBuf = privBytes instanceof Uint8Array
+    ? privBytes.buffer.slice(privBytes.byteOffset, privBytes.byteOffset + privBytes.byteLength)
+    : privBytes;
+  const sk = await suite.kem.importKey("raw", privKeyBuf as ArrayBuffer, false);
+
+  // Convert enc to ArrayBuffer before passing to createRecipientContext
+  const encBuf = enc instanceof Uint8Array
+    ? enc.buffer.slice(enc.byteOffset, enc.byteOffset + enc.byteLength)
+    : enc;
 
   const recipient = await suite.createRecipientContext({
     recipientKey: sk,
-    enc: enc,
+    enc: encBuf as ArrayBuffer, // assure ArrayBuffer
   });
 
-  const plaintext = await recipient.open(ciphertext); 
+  // Convert ciphertext to ArrayBuffer if it is a Uint8Array
+  const ctBuf = ciphertext instanceof Uint8Array
+    ? ciphertext.buffer.slice(ciphertext.byteOffset, ciphertext.byteOffset + ciphertext.byteLength)
+    : ciphertext;
+
+  const plaintext = await recipient.open(ctBuf as ArrayBuffer);
   return new Uint8Array(plaintext);
 }
 

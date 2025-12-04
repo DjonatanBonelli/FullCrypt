@@ -1,15 +1,9 @@
 "use client";
 
 export async function getDilithium() {
-  const { createDilithium } = await import("dilithium-crystals-js");
+  const dilithium = await import("dilithium-crystals-js");
 
-  return await createDilithium({
-    wasmPath: "/dilithium.wasm",
-    locateFile: (file: string) => {
-      if (file.endsWith(".wasm")) return "/dilithium.wasm";
-      return file;
-    }
-  });
+  return dilithium;
 }
 
 export async function generateDilithiumKeyPair(kind: number) {

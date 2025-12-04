@@ -6,8 +6,9 @@ export const importKey = async (base64Key: string) => {
   return await crypto.subtle.importKey("raw", raw, "AES-GCM", true, ["encrypt", "decrypt"]);
 };
 
-export const encryptData = async (data: ArrayBuffer, key: CryptoKey, iv: Uint8Array) =>
+export const encryptData = async (data: ArrayBuffer, key: CryptoKey, iv: BufferSource) =>
   await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, data);
 
-export const decryptData = async (data: ArrayBuffer, key: CryptoKey, iv: Uint8Array) =>
+export const decryptData = async (data: ArrayBuffer, key: CryptoKey, iv: BufferSource) =>
   await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, data);
+
