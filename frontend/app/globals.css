@@ -1,0 +1,248 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* ---------------------------- */
+/*        NEON THEME            */
+/* ---------------------------- */
+
+.neon-input {
+  width: 100%;
+  padding: 12px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 12px;
+  border: 1px solid rgba(140, 90, 255, 0.4);
+  backdrop-filter: blur(6px);
+  color: #fff;
+
+  box-shadow:
+    0 0 6px rgba(140, 90, 255, 0.35),
+    inset 0 0 6px rgba(140, 90, 255, 0.15);
+
+  transition: 0.2s;
+}
+
+.neon-input:focus {
+  outline: none;
+  border-color: rgba(180, 120, 255, 0.8);
+  box-shadow:
+    0 0 12px rgba(140, 90, 255, 0.8),
+    inset 0 0 10px rgba(140, 90, 255, 0.25);
+}
+
+.neon-box {
+  background: rgba(255, 255, 255, 0.02);
+  /* border: 1px solid rgba(140, 90, 255, 0.5); */
+  border-radius: 12px;
+  /* padding: 16px; */
+  backdrop-filter: blur(10px);
+  transition: 0.2s;
+/*   box-shadow:
+    0 0 8px rgba(140, 90, 255, 0.4),
+    inset 0 0 8px rgba(140, 90, 255, 0.15); */
+}
+
+/* .neon-box:hover {
+  box-shadow:
+    0 0 12px rgba(140, 90, 255, 0.7),
+    inset 0 0 12px rgba(140, 90, 255, 0.25);
+  border-color: rgba(180, 120, 255, 0.8);
+} */
+
+/*--------------------------- BOTÕES ---------------------------*/
+
+.neon-btn {
+  color: #fff !important;                     /* texto branco */
+  border: 1px solid rgb(165, 80, 255);        /* roxo do tema */
+  border-radius: 8px;
+  background: color-mix(in srgb, rgb(165,80,255) 20%, transparent);
+  box-shadow:
+    0 0 4px rgb(165,80,255),
+    inset 0 0 0.5px rgb(165,80,255);
+  padding: 6px 20px;
+  transition: 0.2s ease;
+}
+
+.neon-btn:hover {
+  background: color-mix(in srgb, var(--btn-color) 30%, transparent);
+  box-shadow:
+    0 0 3px var(--btn-color),
+    inset 0 0 2px var(--btn-color),
+    0 0 8px var(--btn-color);
+  transform: translateY(-1px);
+}
+
+.gray-btn {
+  color: #fff !important;                     
+  border: 1px solid transparent;       
+  border-radius: 8px;
+  padding: 10px 25px;
+  background: transparent;
+  transition: 0.2s ease;
+}
+
+.gray-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.gray-btn.active,
+.gray-btn[data-active="true"] {
+  color: #fff !important;
+  /* border: 1px solid rgb(165, 80, 255); */
+  background: color-mix(in srgb, rgb(165, 80, 255) 20%, transparent);
+  box-shadow:
+    0 0 4px rgb(165, 80, 255),
+    inset 0 0 0.5px rgb(165, 80, 255);
+}
+
+/* .gray-btn.active:hover,
+.gray-btn[data-active="true"]:hover {
+  background: color-mix(in srgb, rgb(165, 80, 255) 30%, transparent);
+  box-shadow:
+    0 0 3px rgb(165, 80, 255),
+    inset 0 0 2px rgb(165, 80, 255),
+    0 0 8px rgb(165, 80, 255);
+  transform: translateY(-1px);
+}
+ */
+.transparent-btn {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.transparent-btn:hover {
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* Dropzone NÃO usa @apply aqui */
+.dropzone {
+  height: 150px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+  color: #aaa;
+  cursor: pointer;
+
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(140, 90, 255, 0.5);
+  border-radius: 12px;
+  padding: 16px;
+  backdrop-filter: blur(10px);
+  transition: 0.2s;
+  box-shadow:
+    0 0 8px rgba(140, 90, 255, 0.4),
+    inset 0 0 8px rgba(140, 90, 255, 0.15);
+}
+
+.dropzone:hover {
+  box-shadow:
+    0 0 12px rgba(140, 90, 255, 0.7),
+    inset 0 0 12px rgba(140, 90, 255, 0.25);
+  border-color: rgba(140, 90, 255, 0.8);
+  color: #ddd;
+}
+
+/* ---------------------------- */
+/*      AUTH FORM STYLES        */
+/* ---------------------------- */
+
+/* Animação suave para transição entre modos */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.auth-form-container {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Estilo para labels dos inputs */
+label {
+  transition: color 0.2s;
+}
+
+label:hover {
+  color: rgba(180, 120, 255, 0.8);
+}
+
+/* Melhorias no botão de submit */
+button[type="submit"].neon-btn {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+button[type="submit"].neon-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Estilo para mensagens de status */
+.status-message {
+  animation: fadeIn 0.3s ease-in-out;
+  word-wrap: break-word;
+}
+
+/* Melhorias nos tabs */
+.auth-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 4px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+}
+
+.auth-tab:hover {
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.auth-tab.active {
+  background: color-mix(in srgb, rgb(165, 80, 255) 20%, transparent);
+  color: #fff;
+  box-shadow:
+    0 0 4px rgb(165, 80, 255),
+    inset 0 0 0.5px rgb(165, 80, 255);
+}

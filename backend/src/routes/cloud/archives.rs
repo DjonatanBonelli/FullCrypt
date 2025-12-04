@@ -13,6 +13,7 @@ use crate::middleware::jwt::AuthUser;
 pub struct Archive {
     pub id: i32,
     pub nome: String,
+    pub tamanho: i64, // <-- novo campo
 }
 
 pub async fn archives(
@@ -21,7 +22,6 @@ pub async fn archives(
 ) -> Result<Json<Vec<Archive>>, (StatusCode, Json<serde_json::Value>)> {
     let user_id = auth_user.user_id;
 
-    // pega conexão do pool
     let client: Client = pool.get().await.map_err(|_| {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -29,7 +29,6 @@ pub async fn archives(
         )
     })?;
 
-    // prepara query
     let stmt = client.prepare(queries::SELECT_ARQUIVOS).await.map_err(|_| {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -37,7 +36,6 @@ pub async fn archives(
         )
     })?;
 
-    // executa query
     let rows = client.query(&stmt, &[&user_id]).await.map_err(|_| {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -45,12 +43,12 @@ pub async fn archives(
         )
     })?;
 
-    // mapeia para struct Archive
     let arquivos: Vec<Archive> = rows
         .into_iter()
         .map(|r| Archive {
             id: r.get("id"),
             nome: r.get("nome_arquivo"),
+            tamanho: r.get("tamanho"), // <-- pega do banco
         })
         .collect();
 

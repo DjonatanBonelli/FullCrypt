@@ -53,14 +53,19 @@ pub async fn require_auth(
         }
     };
 
-    // Decodifica token JWT
+    // Decodifica token JWT com validação de expiração explícita
+    let mut validation = Validation::new(Algorithm::HS256);
+    validation.validate_exp = true; // Garante que a expiração seja validada
+    validation.leeway = 0; // Não permite margem de tempo para tokens expirados
+    
     let decoded = match decode::<Claims>(
         &token,
         &DecodingKey::from_secret("segredo_super".as_ref()),
-        &Validation::new(Algorithm::HS256),
+        &validation,
     ) {
         Ok(c) => c,
         Err(e) => {
+            // O decode já rejeita tokens expirados automaticamente quando validate_exp = true
             eprintln!("❌ Token inválido ou expirado: {:?}", e);
             return Err(Response::builder()
                 .status(StatusCode::FOUND)

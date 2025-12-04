@@ -23,11 +23,10 @@ base64 = "0.22.1"
 tokio-postgres = { version = "0.7", features = ["with-chrono-0_4"] }
 deadpool-postgres = "0.14"
 
-# Criptografia / JWT
-aes-gcm = "0.10"
+# JWT
 jsonwebtoken = { version = "10", features = ["rust_crypto"] }
 headers = "0.4"
 routes = "0.1.0"
-tower-http = { version = "0.5", features = ["cors"] }
+tower-http = { version = "0.5", features = ["cors", "limit"] }
 http = "1"
 cookie = "0.17"

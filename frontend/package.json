@@ -1,0 +1,34 @@
+{
+  "name": "fullcrypt",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build --turbopack",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@hpke/core": "^1.7.4",
+    "@hpke/ml-kem": "^0.2.1",
+    "base64url": "^3.0.1",
+    "dilithium-crystals-js": "^1.1.3",
+    "fs": "^0.0.1-security",
+    "jose": "^6.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mlkem": "^2.5.0",
+    "next": "15.5.2",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.17",
+    "@types/node": "^20.19.23",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "autoprefixer": "^10.4.22",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.17",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
