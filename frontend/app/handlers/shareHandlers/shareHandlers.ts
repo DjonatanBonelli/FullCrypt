@@ -14,7 +14,8 @@ type ShareOptions = {
 export const handleShare = async (
   options: ShareOptions,
   targetEmail: string,
-  setStatus: (msg: string) => void
+  setStatus: (msg: string) => void,
+  password: string
 ) => {
   try {
     const { file, fileId, fileName } = options;
@@ -23,7 +24,7 @@ export const handleShare = async (
 
     setStatus("🔑 Buscando chaves...");
 
-    const dilithiumKeys = await getDilithiumKeys();
+    const dilithiumKeys = await getDilithiumKeys(password);
     if (!dilithiumKeys?.private) {
       throw new Error("Chave privada Dilithium não encontrada");
     }
@@ -49,7 +50,7 @@ export const handleShare = async (
       aesKey = await generateKey();
     } else {
       // === Arquivo armazenado
-      const aesB64 = await getAESKey(fileId!.toString());
+      const aesB64 = await getAESKey(fileId!.toString(), password);
       if (!aesB64) throw new Error("AES key do arquivo não encontrada");
 
       aesKey = await importKey(aesB64);

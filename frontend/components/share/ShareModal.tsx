@@ -22,6 +22,7 @@ export default function ShareModal({
   fileName,
 }: ShareModalProps) {
   const [recipient, setRecipient] = useState("");
+  const [password, setPassword] = useState("");
 
   if (!isOpen) return null;
 
@@ -35,10 +36,12 @@ export default function ShareModal({
         ? { fileId, fileName }
         : { file },
       recipient,
-      setStatus
+      setStatus,
+      password,
     );
 
     setRecipient("");
+    setPassword("");
     onClose();
   };
 
@@ -64,13 +67,23 @@ export default function ShareModal({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <input
+                type="password"
+                placeholder="Sua senha do Keystore"
+                value={password}
+                onChange={(f) => setPassword(f.target.value)}
+                required
+                className="w-full neon-input"
+              />
+          </div>
+          <div>
+            <input
               type="email"
               placeholder="Destinatário (email)"
               value={recipient}
               onChange={(e) => setRecipient(e.target.value)}
               required
               className="w-full neon-input"
-            />
+              />
           </div>
 
           <div className="flex gap-2 mt-6">

@@ -15,6 +15,8 @@ mod db;
 mod middleware;
 use crate::routes::shared::handlers as shared_handlers;
 use crate::routes::auth::auth_user::AuthUser;
+use tower_http::limit::RequestBodyLimitLayer;
+use axum::extract::DefaultBodyLimit;
 
 use middleware::jwt::require_auth;
 
@@ -43,7 +45,11 @@ async fn main() {
     // Rotas privadas (com autenticação JWT)
     let private_routes = Router::new()
         .route("/api/auth/me", get(routes::auth::me::me))
-        .route("/api/upload", post(routes::cloud::upload::upload))
+        .route(
+            "/api/upload",
+            post(routes::cloud::upload::upload)
+                .layer(RequestBodyLimitLayer::new(100 * 1024 * 1024))
+        )
         .route("/api/archives", get(routes::cloud::archives::archives))
         .route(
             "/api/archives/:file_id",
@@ -74,6 +80,7 @@ async fn main() {
     // Combina rotas públicas e privadas, adiciona state e o layer de CORS
     let app = public_routes
         .merge(private_routes)
+        .layer(DefaultBodyLimit::max(100 * 1024 * 1024))
         .with_state(pool.clone())
         .layer(cors); 
 

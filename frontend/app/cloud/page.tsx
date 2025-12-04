@@ -4,6 +4,7 @@ import FileUpload from "../../components/cloud/FileUpload";
 import FileList from "../../components/cloud/FileList";
 import Compartilhamentos from "../../components/cloud/Compartilhamentos";
 import SwitchBox from "@/components/cloud/SwitchBox";
+import KeyList from "@/components/keys/KeyList";
 
 export default function CloudPage() {
   const [arquivos, setArquivos] = useState([]);
@@ -39,12 +40,7 @@ export default function CloudPage() {
           <Compartilhamentos />
         )}
 
-        {activeTab === "chaves" && (
-          <div className="space-y-4">
-            <h1 className="text-2xl font-bold">Chaves</h1>
-            <p className="text-gray-400">Funcionalidade em desenvolvimento...</p>
-          </div>
-        )}
+        {activeTab === "chaves" && <KeyList />}
 
         {activeTab === "config" && (
           <div className="space-y-4">

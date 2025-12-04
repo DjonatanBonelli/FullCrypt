@@ -11,6 +11,7 @@ use base64::Engine as _;
 use serde::Deserialize;
 use crate::middleware::jwt::AuthUser;
 use crate::routes::shared::models::Compartilhamento;
+use crate::db::queries;
 
 #[derive(Deserialize)]
 pub struct ShareRequest {
@@ -32,14 +33,7 @@ pub async fn listar(
 
     let rows = client
         .query(
-            "
-            SELECT c.id, c.arquivo_id, a.nome_arquivo, c.sender_id, u1.nome as sender_nome, u1.email AS sender_email, u2.email AS receiver_email, c.receiver_id, c.chave_encrypted, c.signature, c.status, c.criado_em
-            FROM compartilhamentos c
-            JOIN arquivos a ON c.arquivo_id = a.id
-            JOIN usuarios u1 ON c.sender_id = u1.id
-            JOIN usuarios u2 ON c.receiver_id = u2.id 
-            WHERE c.receiver_id = $1
-            ",
+            queries::SELECT_COMPARTILHAMENTOS,
             &[&auth_user.user_id],
         )
         .await
@@ -76,7 +70,7 @@ pub async fn aceitar(
     let client = pool.get().await.map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
     let rows_updated = client
         .execute(
-            "UPDATE compartilhamentos SET status='aceito' WHERE id=$1 AND receiver_id=$2",
+            queries::ACEITAR_COMPARTILHAMENTO,
             &[&id, &auth_user.user_id],
         )
         .await
@@ -97,7 +91,7 @@ pub async fn recusar(
     let client = pool.get().await.map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
     let rows_updated = client
         .execute(
-            "UPDATE compartilhamentos SET status='recusado' WHERE id=$1 AND receiver_id=$2",
+            queries::RECUSAR_COMPARTILHAMENTO,
             &[&id, &auth_user.user_id],
         )
         .await

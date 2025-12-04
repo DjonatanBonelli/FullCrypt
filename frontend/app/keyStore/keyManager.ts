@@ -21,6 +21,11 @@ export interface KeyStore {
   };
 }
 
+export interface EncryptedKeyStore {
+  encrypted: number[];
+  iv: number[];
+}
+
 /**
  * Abre conexão com IndexedDB
  */
@@ -76,7 +81,7 @@ async function saveEncryptedKeyStore(encryptedData: ArrayBuffer, iv: Uint8Array)
 }
 
 /**
- * Carrega o keystore criptografado do IndexedDB
+ * Carrega o keystore criptografado do IndexedDB (uso interno)
  */
 async function loadEncryptedKeyStore(): Promise<{ encrypted: Uint8Array; iv: Uint8Array } | null> {
   const db = await openDB();
@@ -86,7 +91,7 @@ async function loadEncryptedKeyStore(): Promise<{ encrypted: Uint8Array; iv: Uin
   return new Promise((resolve, reject) => {
     const request = store.get(KEY_NAME);
     request.onsuccess = () => {
-      const result = request.result;
+      const result = request.result as EncryptedKeyStore | undefined;
       if (!result) {
         resolve(null);
         return;
@@ -96,6 +101,44 @@ async function loadEncryptedKeyStore(): Promise<{ encrypted: Uint8Array; iv: Uin
         iv: new Uint8Array(result.iv),
       });
     };
+    request.onerror = () => reject(request.error);
+  });
+}
+
+/**
+ * Exporta o keystore criptografado exatamente como está no IndexedDB
+ */
+export async function exportEncryptedKeyStore(): Promise<EncryptedKeyStore | null> {
+  const db = await openDB();
+  const transaction = db.transaction([STORE_NAME], "readonly");
+  const store = transaction.objectStore(STORE_NAME);
+
+  return new Promise((resolve, reject) => {
+    const request = store.get(KEY_NAME);
+    request.onsuccess = () => {
+      const result = request.result as EncryptedKeyStore | undefined;
+      if (!result) {
+        resolve(null);
+        return;
+      }
+      resolve(result);
+    };
+    request.onerror = () => reject(request.error);
+  });
+}
+
+/**
+ * Restaura o keystore criptografado a partir de um objeto bruto
+ * (mesmo formato salvo no IndexedDB)
+ */
+export async function restoreEncryptedKeyStore(data: EncryptedKeyStore): Promise<void> {
+  const db = await openDB();
+  const transaction = db.transaction([STORE_NAME], "readwrite");
+  const store = transaction.objectStore(STORE_NAME);
+
+  return new Promise((resolve, reject) => {
+    const request = store.put(data, KEY_NAME);
+    request.onsuccess = () => resolve();
     request.onerror = () => reject(request.error);
   });
 }

@@ -14,6 +14,7 @@ CREATE TABLE arquivos (
     usuario_id INT NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
     nome_arquivo TEXT NOT NULL,
     conteudo BYTEA NOT NULL,
+    tamanho BIGINT NOT NULL,
     nonce BYTEA NOT NULL,
     criado_em TIMESTAMPTZ DEFAULT NOW()
 );
