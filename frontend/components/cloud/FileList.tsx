@@ -74,7 +74,7 @@ export default function FileList({ arquivos, onRefresh }: FileListProps) {
       </div>
     );
   }
-console.log(arquivos)
+console.log("arquivos =>", arquivos, Array.isArray(arquivos));
   return (
     <>
       <div className="space-y-3">

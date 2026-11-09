@@ -13,7 +13,12 @@ export default function CloudPage() {
   const loadArquivos = async () => {
     const res = await fetch("/api/archives", { credentials: "include" });
     const data = await res.json();
-    setArquivos(data);
+      if (!res.ok) {
+    return { arquivos: [], error: data.error };
+  }
+  
+  setArquivos(data);
+  return { arquivos: data, error: null };
   };
 
   useEffect(() => {
